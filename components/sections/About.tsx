@@ -88,7 +88,7 @@ export function About() {
                                     { label: "Role", val: "Senior Full Stack Dev" },
                                     { label: "Company", val: "Webtrendz Technologies" },
                                     { label: "Duration", val: "June 2022 – Present" },
-                                    { label: "Tenure", val: "3 years 9 months" },
+                                    { label: "Tenure", val: "4 years" },
                                     { label: "Team", val: "Lead of 4 developers" },
                                     { label: "Location", val: contact.location },
                                     { label: "Relocate", val: "Open — immediately" },
