@@ -1,4 +1,4 @@
-# Mogesh Umapathi — Portfolio v3
+# Mogesh Umapathi — Portfolio
 
 A premium personal portfolio built with Next.js 14, TypeScript, and Tailwind CSS.
 Designed after thorough research of Awwwards-winning developer portfolios and HR hiring preferences.
