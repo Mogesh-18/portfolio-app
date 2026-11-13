@@ -1,33 +1,34 @@
 import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { extendTailwindMerge } from "tailwind-merge";
+import type { CSSProperties } from "react";
 
-/** 
- * Merge Tailwind classes without conflicts 
+/*
+ * tailwind-merge only knows Tailwind's default scale. Register the project's
+ * custom utilities, otherwise e.g. `text-2xs` is read as a text *colour* and
+ * silently dropped next to `text-fg-2`.
+ */
+const twMerge = extendTailwindMerge({
+    extend: {
+        theme: {
+            text: ["2xs", "13", "15"],
+            shadow: ["elev-1", "elev-2", "elev-3", "float"],
+        },
+        classGroups: {
+            "bg-image": [{ bg: ["tone-grad", "tone-grad-x", "tone-solid", "grad-brand", "grad-solid"] }],
+        },
+    },
+});
+
+/**
+ * Merge Tailwind classes without conflicts
  */
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-/** 
- * Format a number with ordinal suffix 
+/**
+ * Inline style that sets the stagger delay used by `.reveal` / `.enter` (styles/components.css)
  */
-export function toOrdinal(n: number): string {
-    const s = ["th", "st", "nd", "rd"];
-    const v = n % 100;
-    return n + (s[(v - 20) % 10] || s[v] || s[0]);
-}
-
-/** 
- * Pad a number with leading zeros 
- */
-export function zeroPad(n: number, digits = 2): string {
-    return String(n).padStart(digits, "0");
-}
-
-/** 
- * Truncate a string to a max length 
- */
-export function truncate(str: string, max = 120): string {
-    if (str.length <= max) return str;
-    return str.slice(0, max).trimEnd() + "…";
+export function delay(ms: number): CSSProperties {
+    return { "--d": `${ms}ms` };
 }

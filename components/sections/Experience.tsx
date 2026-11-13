@@ -1,87 +1,123 @@
-"use client";
-import { useReveal } from "@/hooks/useScrollAnimation";
+import { Fragment } from "react";
+import { Briefcase, CalendarClock, MapPin, Users } from "lucide-react";
+import { Reveal } from "@/components/ui/Reveal";
+import { LiveDot } from "@/components/ui/LiveDot";
+import { Tag } from "@/components/ui/Tag";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { Accent } from "@/components/ui/Accent";
 import { experiences } from "@/data/resume";
-import { cn } from "@/lib/utils";
+import { formatRange, formatTenure } from "@/lib/dates";
+
+/** Emphasise numbers ("30%", "4+", "6") inside a highlight sentence. */
+function withMetrics(text: string) {
+    return text.split(/(\d+(?:\.\d+)?\+?%?)/g).map((part, i) =>
+        i % 2 === 1
+            ? <strong key={i} className="font-mono font-medium text-fg">{part}</strong>
+            : <Fragment key={i}>{part}</Fragment>
+    );
+}
+
+/** "Webtrendz Technologies" → "WT" */
+const monogram = (name: string) =>
+    name.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]?.toUpperCase()).join("");
 
 export function Experience() {
-    const { ref: rH, visible: vH } = useReveal();
-    const { ref: rC, visible: vC } = useReveal({ threshold: 0.06 });
-    const exp = experiences[0];
-
     return (
-        <section id="experience" className="section-y">
+        <section id="experience" aria-labelledby="experience-title" className="section-y">
             <div className="wrap">
-                <div ref={rH} className={cn("reveal mb-10", vH && "in")}>
-                    <div className="flex items-center gap-3 mb-4">
-                        <span className="t-label text-accent">02</span>
-                        <div className="h-px w-10 bg-accent" />
-                        <span className="t-label text-fg-3">Experience</span>
-                    </div>
-                    <h2 className="t-h1 text-fg">Professional History</h2>
-                </div>
+                <SectionHeader
+                    index={2}
+                    label="Experience"
+                    titleId="experience-title"
+                    title={<>Building, leading, <Accent>shipping.</Accent></>}
+                    description="Four-plus years at one company, from writing the first schema to leading the team that ships on it."
+                />
 
-                <div ref={rC} className={cn("reveal", vC && "in")}>
-                    <div
-                        className="rounded-2xl overflow-hidden border border-border bg-bg-card"
-                        style={{ boxShadow: "var(--shadow-3)" }}
-                    >
-                        <div className="grid sm:grid-cols-[1fr_auto] items-start gap-4 px-5 sm:px-8 py-6 border-b border-border bg-bg-2">
-                            <div className="min-w-0">
-                                <p className="t-label text-accent mb-2">Full-time · {exp.location}</p>
-                                <h3 className="t-h2 text-fg break-words">{exp.companyFull}</h3>
-                                <p className="text-base font-semibold text-fg-2 mt-1">{exp.role}</p>
-                            </div>
-                            <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
-                                <span className="t-label px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 whitespace-nowrap">
-                                    ● Currently Active
-                                </span>
-                                <span className="text-sm text-fg-2 font-medium whitespace-nowrap">{exp.duration}</span>
-                                <span className="t-label text-fg-3">{exp.tenure}</span>
-                            </div>
-                        </div>
+                <ol className="space-y-16">
+                    {experiences.map(exp => {
+                        const isCurrent = !exp.endDate;
+                        return (
+                            <li key={exp.id} className="grid lg:grid-cols-[340px_1fr] gap-8 lg:gap-16">
+                                {/* Role card — sticks while the highlights scroll past */}
+                                <Reveal className="lg:sticky lg:top-28 self-start">
+                                    <div className="relative overflow-hidden rounded-2xl border border-border bg-bg-card p-6 shadow-elev-2">
+                                        <span aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-accent/10 blur-3xl" />
 
-                        <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y divide-border border-b border-border">
-                            {[
-                                { value: "4+", sub: "ERP/CRM apps shipped" },
-                                { value: "30%", sub: "Redux boilerplate cut" },
-                                { value: "40%", sub: "PR rework reduced" },
-                                { value: "6", sub: "APIs integrated" },
-                            ].map(({ value, sub }) => (
-                                <div key={sub} className="px-4 sm:px-5 py-4 sm:py-5 hover:bg-bg-2 transition-colors duration-200">
-                                    <p className="font-extrabold text-xl sm:text-2xl text-accent leading-none">{value}</p>
-                                    <p className="text-xs text-fg-2 font-medium mt-1.5 leading-snug">{sub}</p>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="px-5 sm:px-8 py-6 sm:py-7">
-                            <p className="t-label text-fg-3 mb-5">Key Achievements</p>
-                            <ul className="space-y-5">
-                                {exp.highlights.map((h, i) => (
-                                    <li key={i} className="flex gap-3 sm:gap-4 group min-w-0">
-                                        <div className="mt-0.5 shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-accent-t border border-accent/20 group-hover:bg-accent group-hover:border-accent transition-all duration-300">
-                                            <span className="font-bold text-[10px] text-accent group-hover:text-white transition-colors duration-300">
-                                                {String(i + 1).padStart(2, "0")}
+                                        <div className="relative flex items-center gap-3">
+                                            <span aria-hidden className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-accent/25 bg-accent-t font-mono text-sm font-medium text-accent">
+                                                {monogram(exp.company)}
                                             </span>
+                                            <div className="min-w-0">
+                                                <p className="font-semibold tracking-tight text-fg leading-snug">{exp.company}</p>
+                                                {isCurrent && (
+                                                    <p className="mt-1 inline-flex items-center gap-1.5 t-label text-success">
+                                                        <LiveDot size="sm" />
+                                                        Current role
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
-                                        <p className="text-sm text-fg-2 leading-relaxed flex-1 min-w-0">{h}</p>
-                                    </li>
-                                ))}
-                            </ul>
 
-                            <div className="mt-7 pt-6 border-t border-border flex flex-wrap gap-2">
-                                {exp.tags.map(tag => (
-                                    <span
-                                        key={tag}
-                                        className="px-3 py-1 text-xs font-semibold rounded-full bg-accent-t text-accent border border-accent/20"
-                                    >
-                                        {tag}
+                                        <h3 className="relative mt-6 t-h2 text-fg">{exp.role}</h3>
+                                        <p className="relative mt-1 text-sm text-fg-2">{exp.companyFull}</p>
+
+                                        <dl className="relative mt-6 space-y-2.5 border-t border-border pt-5 text-sm">
+                                            {[
+                                                { icon: CalendarClock, label: "Dates", value: `${formatRange(exp.startDate, exp.endDate)} · ${formatTenure(exp.startDate, exp.endDate)}` },
+                                                { icon: Briefcase, label: "Type", value: exp.type },
+                                                { icon: MapPin, label: "Location", value: exp.location },
+                                                ...(exp.team ? [{ icon: Users, label: "Team", value: exp.team }] : []),
+                                            ].map(({ icon: Icon, label, value }) => (
+                                                <div key={label} className="flex items-start gap-3">
+                                                    <dt className="flex items-center gap-2 pt-px text-fg-3">
+                                                        <Icon size={14} aria-hidden />
+                                                        <span className="sr-only">{label}</span>
+                                                    </dt>
+                                                    <dd className="text-fg-2">{value}</dd>
+                                                </div>
+                                            ))}
+                                        </dl>
+
+                                        <ul className="relative mt-5 flex flex-wrap gap-1.5" aria-label="Technologies">
+                                            {exp.tags.map(tag => (
+                                                <Tag key={tag}>{tag}</Tag>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </Reveal>
+
+                                {/* Timeline: the rail draws in and a glowing head rides its tip as
+                                    the list scrolls through the viewport (CSS scroll-driven animations) */}
+                                <div className="timeline relative pl-10 sm:pl-12">
+                                    <span aria-hidden className="absolute left-[9px] top-3 bottom-3 w-px bg-border" />
+                                    <span aria-hidden className="rail-fill absolute left-[8px] top-3 bottom-3 w-[3px] rounded-full bg-[linear-gradient(to_bottom,var(--v-indigo),var(--v-violet)_50%,var(--v-pink))]" />
+                                    <span aria-hidden className="absolute left-[9px] top-3 bottom-3 w-px">
+                                        <span className="rail-head absolute left-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-v-pink shadow-[0_0_0_4px_color-mix(in_oklch,var(--v-pink)_22%,transparent),0_0_22px_6px_color-mix(in_oklch,var(--v-violet)_55%,transparent)]" />
                                     </span>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
+                                    <p className="t-label mb-5 text-fg-3">Key achievements</p>
+
+                                    <ul className="space-y-3">
+                                        {exp.highlights.map((h, i) => (
+                                            <Reveal as="li" key={i} delay={i * 70} className="relative">
+                                                <span
+                                                    aria-hidden
+                                                    className="tl-dot absolute -left-10 sm:-left-12 top-5 h-[19px] w-[19px] rounded-full border-[4px] border-bg bg-v-violet ring-1 ring-border shadow-[0_0_0_5px_color-mix(in_oklch,var(--v-violet)_14%,transparent)]"
+                                                />
+                                                <div className="group rounded-xl border border-transparent p-4 sm:p-5 transition-colors duration-300 hover:border-border hover:bg-bg-card">
+                                                    <p className="flex gap-4 text-15 text-fg-2 leading-relaxed">
+                                                        <span aria-hidden className="font-mono text-xs pt-1 bg-grad-brand bg-clip-text text-transparent font-medium">{String(i + 1).padStart(2, "0")}</span>
+                                                        <span>{withMetrics(h)}</span>
+                                                    </p>
+                                                </div>
+                                            </Reveal>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </li>
+                        );
+                    })}
+                </ol>
             </div>
         </section>
     );
