@@ -5,6 +5,7 @@ import { geistFonts } from "@/lib/og-fonts";
 export const alt = "Project case study";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+export const revalidate = 86400;
 
 export function generateStaticParams() {
     return projects.map(p => ({ slug: p.id }));

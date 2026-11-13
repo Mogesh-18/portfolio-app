@@ -17,7 +17,8 @@ function CardLink({ p, className }: { p: Project; className?: string }) {
             href={`/projects/${p.id}`}
             className={cn(
                 "after:absolute after:inset-0 after:rounded-[inherit] after:content-['']",
-                "focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-(--tone)",
+                "focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:-outline-offset-4 focus-visible:after:outline-(--tone)",
+                // inset ring: the card is overflow-hidden, so an outside ring would be clipped
                 className
             )}
         >
@@ -30,7 +31,7 @@ function OpenArrow() {
     return (
         <span
             aria-hidden
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-border text-fg-2 transition-all duration-500 ease-expo group-hover:rotate-45 group-hover:border-transparent group-hover:bg-[linear-gradient(135deg,var(--tone),var(--tone-2))] group-hover:text-white"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-border text-fg-2 transition-all duration-500 ease-expo group-hover:rotate-45 group-hover:border-transparent group-hover:bg-tone-solid group-hover:text-white"
         >
             <ArrowUpRight size={17} strokeWidth={2} />
         </span>
@@ -64,7 +65,7 @@ function FeaturedCard({ p }: { p: Project }) {
 
             <div className="flex flex-col p-6 sm:p-8 lg:pl-4">
                 <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-[linear-gradient(135deg,var(--tone),var(--tone-2))] px-2.5 py-0.5 t-label text-white">Featured</span>
+                    <span className="rounded-full bg-tone-solid px-2.5 py-0.5 t-label text-white">Featured</span>
                     <StatusBadge p={p} />
                     {p.year && <span className="font-mono text-xs text-fg-3">{p.year}</span>}
                 </div>

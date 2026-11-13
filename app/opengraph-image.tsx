@@ -5,6 +5,8 @@ import { geistFonts } from "@/lib/og-fonts";
 export const alt = `${contact.name} — ${contact.title} & Technical Lead`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+/* The image shows years of experience: regenerate daily like the pages */
+export const revalidate = 86400;
 
 export default async function OpengraphImage() {
     return new ImageResponse(

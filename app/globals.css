@@ -137,7 +137,9 @@
         border-color: var(--border);
     }
 
-    /* CRITICAL: Both html AND body need overflow-x:hidden — body alone is ignored by iOS Safari */
+    /* Clip horizontal overflow on BOTH html and body (body alone is ignored by iOS Safari).
+       `clip`, not `hidden`: `hidden` turns them into scroll containers, which breaks
+       `position: sticky` (e.g. the Experience role card). */
     html {
         scroll-behavior: smooth;
         /* keep anchored headings clear of the fixed header */
@@ -145,7 +147,7 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
-        overflow-x: hidden;
+        overflow-x: clip;
     }
 
     body {
@@ -153,8 +155,7 @@
         background: var(--bg);
         color: var(--fg);
         line-height: 1.65;
-        overflow-x: hidden;
-        max-width: 100vw;
+        overflow-x: clip;
     }
 
     /* Film grain — a fixed, non-interactive noise layer for texture */
@@ -268,6 +269,15 @@
        rather than `transition` so hover transitions on the same element work. */
     .js .reveal:not([data-shown]) {
         opacity: 0;
+    }
+
+    /* Failsafe: if the Reveal script never runs (blocked or failed JS), show
+       everything after 3s. <Reveal> sets html[data-reveal] once it is live. */
+    .js:not([data-reveal]) .reveal:not([data-shown]) {
+        /* `reveal` only defines `from`, so the end state is the element's own
+           opacity — make that 1 here (the delay still holds it at opacity 0). */
+        opacity: 1;
+        animation: reveal .65s var(--ease-expo) 3s both;
     }
 
     .js .reveal[data-shown] {
@@ -405,6 +415,12 @@
     .cmdk[open] {
         opacity: 1;
         transform: none;
+    }
+
+    /* Closed for a theme switch: skip the fade so the view transition doesn't capture it */
+    .cmdk[data-instant],
+    .cmdk[data-instant]::backdrop {
+        transition: none;
     }
 
     @starting-style {
@@ -668,4 +684,12 @@
         color: var(--fg-3);
         word-break: break-all;
     }
+}
+
+/* Darkened --tone/--tone-2 gradient for fills that carry white text or icons.
+   Mixing in 35% black keeps every vibrant tone at ≥ 4.5:1 against white in both themes. */
+@utility bg-tone-solid {
+    background-image: linear-gradient(135deg,
+            color-mix(in oklch, var(--tone) 65%, black),
+            color-mix(in oklch, var(--tone-2) 65%, black));
 }

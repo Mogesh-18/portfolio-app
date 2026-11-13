@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { track } from "@vercel/analytics";
@@ -38,6 +38,10 @@ type Item = {
 
 const GROUPS: Group[] = ["Navigate", "Case studies", "Actions", "Elsewhere"];
 
+const noop = () => () => {};
+/** false during SSR + hydration, true afterwards (avoids theme-dependent hydration mismatches) */
+const useMounted = () => useSyncExternalStore(noop, () => true, () => false);
+
 export function CommandPalette() {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const listRef = useRef<HTMLUListElement>(null);
@@ -46,10 +50,14 @@ export function CommandPalette() {
     const [copied, setCopied] = useState(false);
     const router = useRouter();
     const { resolvedTheme, setTheme } = useTheme();
+    const mounted = useMounted();
+    const closeTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
     const open = useCallback(() => {
         const d = dialogRef.current;
         if (!d || d.open) return;
+        clearTimeout(closeTimer.current);
+        delete d.dataset.instant;
         setQuery("");
         setActive(0);
         setCopied(false);
@@ -58,10 +66,12 @@ export function CommandPalette() {
     }, []);
     const close = useCallback(() => dialogRef.current?.close(), []);
 
-    /* ⌘K / Ctrl+K toggles; custom event opens */
+    /* ⌘K (Apple) / Ctrl+K (elsewhere) toggles; custom event opens.
+       On macOS Ctrl+K is "delete to end of line" in text fields, so leave it alone there. */
     useEffect(() => {
+        const apple = /Mac|iPhone|iPad/.test(navigator.userAgent);
         const onKey = (e: KeyboardEvent) => {
-            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+            if ((apple ? e.metaKey : e.ctrlKey) && e.key.toLowerCase() === "k") {
                 e.preventDefault();
                 if (dialogRef.current?.open) close();
                 else open();
@@ -72,10 +82,11 @@ export function CommandPalette() {
         return () => {
             window.removeEventListener("keydown", onKey);
             window.removeEventListener(OPEN_EVENT, open);
+            clearTimeout(closeTimer.current);
         };
     }, [open, close]);
 
-    const isDark = resolvedTheme === "dark";
+    const isDark = mounted && resolvedTheme === "dark";
 
     const items = useMemo<Item[]>(() => [
         { id: "top", group: "Navigate", label: "Home", icon: <Hash size={16} />, keywords: "top hero start", action: { type: "go", href: "/" } },
@@ -140,7 +151,8 @@ export function CommandPalette() {
                 window.location.href = `mailto:${contact.email}`;
                 return;
             case "theme":
-                // Close first so the view-transition snapshot doesn't include the palette
+                // Close instantly (no fade-out) so the view-transition snapshot doesn't include the palette
+                if (dialogRef.current) dialogRef.current.dataset.instant = "";
                 close();
                 requestAnimationFrame(() => switchTheme(isDark ? "light" : "dark", setTheme));
                 return;
@@ -159,7 +171,7 @@ export function CommandPalette() {
                     .then(() => {
                         setCopied(true);
                         track("copy_email", { source: "command_palette" });
-                        setTimeout(close, 700);
+                        closeTimer.current = setTimeout(close, 700);
                     })
                     .catch(() => { window.location.href = `mailto:${contact.email}`; });
                 return;
@@ -201,6 +213,10 @@ export function CommandPalette() {
                     />
                     <kbd className="hidden sm:inline-flex t-label rounded-md border border-border px-1.5 py-0.5 text-fg-3">Esc</kbd>
                 </div>
+
+                <p className="sr-only" aria-live="polite" aria-atomic="true">
+                    {query ? `${results.length} result${results.length === 1 ? "" : "s"}` : ""}
+                </p>
 
                 <ul ref={listRef} id="cmdk-list" role="listbox" aria-label="Results" className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
                     {results.length === 0 && (

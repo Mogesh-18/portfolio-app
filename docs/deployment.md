@@ -33,7 +33,7 @@ Set these in Project → Settings → Environment Variables, for both **Producti
    - verify your domain in Resend (it gives you DNS records to add);
    - set `CONTACT_FROM`, e.g. `Portfolio <hello@yourdomain.com>`.
 
-**Spam guards:** a hidden honeypot field, a minimum time on the form and server-side validation. Each message sets `reply_to` to the visitor's address, so hitting **Reply** in your inbox answers them directly.
+**Spam guards:** a hidden honeypot field, a minimum time on the form, server-side validation and a per-instance rate limit (5 messages per IP per 10 minutes). For a hard limit across all instances, add a **Vercel Firewall** rate-limit rule for `POST` requests to `/`. Each message sets `reply_to` to the visitor's address, so hitting **Reply** in your inbox answers them directly.
 
 ## CI
 

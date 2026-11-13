@@ -58,9 +58,11 @@ export function ContactForm() {
             {field("email", "Email", <input {...a11y("email")} type="email" autoComplete="email" required maxLength={200} className={input} placeholder="you@company.com" />)}
             {field("message", "Message", <textarea {...a11y("message")} required rows={5} maxLength={5000} className={cn(input, "resize-y min-h-28")} placeholder="What are you working on?" />)}
 
-            {/* Spam guards — hidden from people, visible to bots */}
+            {/* Spam guards — hidden from people, visible to bots. The honeypot's name and
+                label must not look like a real field ("company", "website", …) or browser
+                autofill fills it and real messages get dropped as spam. */}
             <div aria-hidden className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
-                <label>Company <input name="company" type="text" tabIndex={-1} autoComplete="off" /></label>
+                <label>Leave this empty <input name="cf_trap" type="text" tabIndex={-1} autoComplete="off" data-1p-ignore data-lpignore="true" /></label>
             </div>
             <input ref={startedRef} type="hidden" name="started" />
 

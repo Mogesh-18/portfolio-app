@@ -13,6 +13,9 @@ let observer: IntersectionObserver | null = null;
 function getObserver() {
     observer ??= new IntersectionObserver(
         entries => {
+            // Reveal is live: disables the CSS no-JS failsafe (globals.css). Set in the
+            // same callback as data-shown so in-view items never flicker.
+            document.documentElement.dataset.reveal = "";
             for (const entry of entries) {
                 if (!entry.isIntersecting) continue;
                 entry.target.setAttribute("data-shown", "");

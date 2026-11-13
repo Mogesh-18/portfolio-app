@@ -7,9 +7,6 @@ import { Contact } from "@/components/sections/Contact";
 import { contact, experiences, skillGroups, summary } from "@/data/resume";
 import { siteUrl } from "@/lib/site";
 
-/* Rebuild the static page daily so computed values (years, tenure, © year) stay current. */
-export const revalidate = 86400;
-
 const personJsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",

@@ -32,6 +32,10 @@ const serif = Instrument_Serif({
     variable: "--font-instrument",
 });
 
+/* Rebuild every static route daily so computed values (years, tenure, © year)
+   stay current. Set on the root layout so all pages inherit it. */
+export const revalidate = 86400;
+
 export const metadata: Metadata = {
     metadataBase: new URL(siteUrl),
     title: {

@@ -64,7 +64,7 @@ export function Skills() {
                                 )}
                             >
                                 <span aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-(--tone)/20 blur-2xl transition-opacity duration-500 opacity-70 group-hover/core:opacity-100" />
-                                <span aria-hidden className="relative grid h-11 w-11 place-items-center rounded-xl bg-[linear-gradient(135deg,var(--tone),var(--tone-2))] text-white shadow-[0_10px_24px_-10px_var(--tone)]">
+                                <span aria-hidden className="relative grid h-11 w-11 place-items-center rounded-xl bg-tone-solid text-white shadow-[0_10px_24px_-10px_var(--tone)]">
                                     <Icon size={20} strokeWidth={1.75} />
                                 </span>
                                 <p className="relative mt-5 text-lg font-semibold tracking-tight text-fg">{name}</p>
@@ -94,7 +94,7 @@ export function Skills() {
                                 <span aria-hidden className="absolute inset-x-0 top-0 h-[3px] bg-[linear-gradient(90deg,var(--tone),var(--tone-2))] opacity-80" />
 
                                 <div className="mb-5 flex items-center gap-3">
-                                    <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-(--tone)/12 text-(--tone) ring-1 ring-(--tone)/25 transition-colors duration-300 group-hover/card:bg-[linear-gradient(135deg,var(--tone),var(--tone-2))] group-hover/card:text-white group-hover/card:ring-transparent">
+                                    <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-(--tone)/12 text-(--tone) ring-1 ring-(--tone)/25 transition-colors duration-300 group-hover/card:bg-tone-solid group-hover/card:text-white group-hover/card:ring-transparent">
                                         <Icon size={18} strokeWidth={1.75} />
                                     </span>
                                     <div className="min-w-0 flex-1">

@@ -4,9 +4,9 @@
 
 | Route | Rendering | Notes |
 |---|---|---|
-| `/` | Static, **revalidated daily** (`revalidate = 86400`) | Keeps computed values (years, tenure, © year) current |
-| `/projects/[slug]` | Static (SSG via `generateStaticParams`, `dynamicParams = false`) | Unknown slugs return 404 |
-| `/opengraph-image`, `/projects/[slug]/opengraph-image` | Generated at build with `next/og` | Geist is fetched at build time; if the fetch fails, the built-in font is used instead |
+| `/` | Static, **revalidated daily** | `revalidate = 86400` is set on the root layout, so every page inherits it. Keeps computed values (years, tenure, © year) current. |
+| `/projects/[slug]` | Static (SSG via `generateStaticParams`, `dynamicParams = false`), revalidated daily | Unknown slugs return 404 |
+| `/opengraph-image`, `/projects/[slug]/opengraph-image` | Generated with `next/og`, revalidated daily | Geist is fetched once per build (8 s timeout). If the fetch fails, the built-in font is used instead and the build carries on. |
 | `/icon`, `/apple-icon`, `/manifest.webmanifest`, `/sitemap.xml`, `/robots.txt` | Static, generated | |
 
 ## Server vs client components
@@ -44,9 +44,10 @@ data/resume.ts ──▶ components/sections/*  (home page)
 ## Contact form
 
 `app/actions/contact.ts` is a Server Action. It:
-1. Validates input.
-2. Runs the spam guards (a honeypot field and a minimum time on the form).
-3. POSTs to Resend's REST API (no SDK).
+1. Runs the spam guards: a honeypot field (`cf_trap`) and a minimum time on the form.
+2. Validates input, and strips line breaks from the name because it goes into the subject.
+3. Applies a best-effort rate limit of 5 messages per IP per 10 minutes. It is in-memory, so it applies per server instance.
+4. POSTs to Resend's REST API (no SDK), with a 10 s timeout.
 
 The form is only rendered when `RESEND_API_KEY` is set at build time. See [deployment.md](deployment.md#contact-form-resend).
 

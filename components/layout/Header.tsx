@@ -27,18 +27,31 @@ const kbd =
 export function Header() {
     const mod = useModifierKey();
     const [scrolled, setScrolled] = useState(false);
-    const [open, setOpen] = useState(false);
+    const pathname = usePathname();
+    /* The menu is open for the route it was opened on, so Back/Forward
+       navigation closes it (and releases the scroll lock) automatically. */
+    const [openOn, setOpenOn] = useState<string | null>(null);
+    const open = openOn === pathname;
     const triggerRef = useRef<HTMLButtonElement>(null);
     const navRef = useRef<HTMLElement>(null);
     const pillRef = useRef<HTMLSpanElement>(null);
     const active = useActiveSection();
-    const pathname = usePathname();
 
     useEffect(() => {
         const fn = () => setScrolled(window.scrollY > 24);
         fn();
         window.addEventListener("scroll", fn, { passive: true });
         return () => window.removeEventListener("scroll", fn);
+    }, []);
+
+    /* Close the mobile menu if the viewport grows past the `lg` breakpoint
+       (e.g. rotating a tablet) — the panel is display:none there, but the
+       scroll lock would otherwise stay on. */
+    useEffect(() => {
+        const mq = window.matchMedia("(min-width: 64rem)");
+        const fn = (e: MediaQueryListEvent) => { if (e.matches) setOpenOn(null); };
+        mq.addEventListener("change", fn);
+        return () => mq.removeEventListener("change", fn);
     }, []);
 
     /* Slide the indicator pill under the active link (written straight to the DOM) */
@@ -60,7 +73,7 @@ export function Header() {
 
     /** restoreFocus=false when closing because a link was followed (focus moves to the target) */
     const closeMenu = useCallback((restoreFocus = true) => {
-        setOpen(false);
+        setOpenOn(null);
         if (restoreFocus) triggerRef.current?.focus();
     }, []);
 
@@ -149,7 +162,7 @@ export function Header() {
                             <button
                                 ref={triggerRef}
                                 type="button"
-                                onClick={() => setOpen(true)}
+                                onClick={() => setOpenOn(pathname)}
                                 aria-label="Open menu"
                                 aria-haspopup="dialog"
                                 aria-expanded={open}

@@ -43,6 +43,8 @@ Cards set two CSS variables, `--tone` and `--tone-2`, and style themselves from 
 </div>
 ```
 
+When a tone fill carries **white text or icons**, use `bg-tone-solid` instead of the raw gradient. It darkens both stops (35% black) so white stays at 4.5:1 or above. The raw gradient is only for decoration.
+
 The cursor spotlight (`.spotlight`) picks up `--tone` automatically. Project cards take their tone from `projectTone(p)` in `components/projects/ProjectCover.tsx`.
 
 ## Theme
@@ -94,7 +96,7 @@ There is no animation library.
 | Mobile menu | Circular `clip-path` reveal from the button, with staggered links (`.menu-panel`, `.menu-item`) |
 | Command palette | `<dialog>` with `@starting-style` fade and scale |
 
-**Every effect respects `prefers-reduced-motion`.** Animations collapse to instant, and the marquee, rail and progress bar stop. Content hidden for reveals is only hidden when JavaScript runs (`html.js`), so the page reads fine without it.
+**Every effect respects `prefers-reduced-motion`.** Animations collapse to instant, and the marquee, rail and progress bar stop. Content hidden for reveals is only hidden when JavaScript runs (`html.js`), so the page reads fine without it. If JavaScript runs but the Reveal script fails to load, a CSS failsafe shows everything after 3 seconds.
 
 ## Accessibility checklist
 

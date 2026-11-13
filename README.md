@@ -29,7 +29,7 @@ Personal portfolio of a Full Stack Developer & Technical Lead: a statically gene
 | Area | Choice |
 |---|---|
 | Framework | Next.js 16 (App Router, Turbopack), React 19 |
-| Language | TypeScript 5 (strict, `noUncheckedIndexedAccess`, `noUnused*`) |
+| Language | TypeScript 5 (strict, `noUncheckedIndexedAccess`); unused code is a lint error |
 | Styling | Tailwind CSS 4 (CSS-first `@theme` in `app/globals.css`), OKLCH design tokens |
 | Fonts | Geist Sans, Geist Mono and Instrument Serif via `next/font` (self-hosted) |
 | Theme | `next-themes`: **light by default** (OS preference is ignored), toggle to dark |
