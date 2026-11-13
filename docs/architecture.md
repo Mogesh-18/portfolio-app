@@ -63,6 +63,7 @@ All events are sent with `track()` from `@vercel/analytics`.
 | `download_cv` (`source`) | The CV is downloaded |
 | `contact_form_sent` | The contact form succeeds |
 | `command_palette_open` | The ⌘K palette opens |
+| `reveal_phone` | A visitor reveals the phone number in Contact |
 
 ## Security
 

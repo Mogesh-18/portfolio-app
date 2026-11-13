@@ -17,7 +17,8 @@ const MIN_FILL_MS = 3000;
 const SEND_TIMEOUT_MS = 10_000;
 
 /*
- * Best-effort rate limit: 5 messages per IP per 10 minutes.
+ * Best-effort rate limit: 5 actions per IP per 10 minutes, counted separately
+ * per action ("contact:<ip>", "phone:<ip>").
  * In-memory, so it is per server instance (Vercel may run several) — it stops
  * a single script hammering the form, not a distributed attack. For a hard
  * limit, add a Vercel Firewall rate-limit rule on POST /.
@@ -25,6 +26,19 @@ const SEND_TIMEOUT_MS = 10_000;
 const RATE_LIMIT = 5;
 const RATE_WINDOW_MS = 10 * 60_000;
 const hits = new Map<string, number[]>();
+
+async function clientIp() {
+    return (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+}
+
+/**
+ * Returns the phone number on request (the "Show phone number" button), so it is
+ * never part of the page HTML or bundle where scrapers would find it.
+ */
+export async function revealPhone(): Promise<{ ok: true; display: string; tel: string } | { ok: false }> {
+    if (rateLimited(`phone:${await clientIp()}`)) return { ok: false };
+    return { ok: true, display: contact.phone, tel: contact.phone.replace(/[^\d+]/g, "") };
+}
 
 function rateLimited(ip: string): boolean {
     const now = Date.now();
@@ -67,8 +81,7 @@ export async function sendContact(_prev: ContactState, formData: FormData): Prom
     else if (values.message.length > 5000) errors.message = "Please keep it under 5,000 characters.";
     if (Object.keys(errors).length) return { status: "error", errors, values };
 
-    const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    if (rateLimited(ip)) {
+    if (rateLimited(`contact:${await clientIp()}`)) {
         return { status: "error", message: "Too many messages — please try again later, or email me directly.", values };
     }
 

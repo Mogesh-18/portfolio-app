@@ -6,7 +6,8 @@ vi.mock("next/headers", () => ({
     headers: async () => new Headers({ "x-forwarded-for": `${ip}, 10.0.0.1` }),
 }));
 
-const { sendContact } = await import("@/components/features/contact/actions");
+const { sendContact, revealPhone } = await import("@/components/features/contact/actions");
+const { contact } = await import("@/data/resume");
 
 const idle = { status: "idle" as const };
 let ipCounter = 0;
@@ -98,5 +99,19 @@ describe("sendContact (Server Action)", () => {
         const res = await sendContact(idle, form(valid()));
         expect(res.status).toBe("error");
         expect(fetchMock).not.toHaveBeenCalled();
+    });
+});
+
+describe("revealPhone (Server Action)", () => {
+    beforeEach(() => { ip = `198.51.100.${++ipCounter}`; });
+
+    it("returns the number plus a dialable tel: value", async () => {
+        const res = await revealPhone();
+        expect(res).toEqual({ ok: true, display: contact.phone, tel: contact.phone.replace(/[^\d+]/g, "") });
+    });
+
+    it("rate-limits per IP, separately from the contact form", async () => {
+        for (let i = 0; i < 5; i++) expect((await revealPhone()).ok).toBe(true);
+        expect((await revealPhone()).ok).toBe(false);
     });
 });

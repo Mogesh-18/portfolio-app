@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
-import { ArrowUpRight, Mail, Phone } from "lucide-react";
+import { ArrowUpRight, Mail } from "lucide-react";
+import { RevealPhone } from "@/components/features/contact/RevealPhone";
+import { channelCard } from "@/components/features/contact/channel-card";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Accent } from "@/components/ui/Accent";
@@ -25,26 +27,19 @@ function ChannelCards({ channels }: { channels: Channel[] }) {
                 const A = ext ? ExternalLink : "a";
                 return (
                 <li key={label}>
-                    <A
-                        href={href}
-                        className="group flex items-center gap-4 rounded-xl border border-border bg-bg-2/60 p-4 transition-[border-color,background-color,translate] duration-300 ease-expo hover:-translate-y-0.5 hover:border-accent/40 hover:bg-bg-card"
-                    >
-                        <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-border bg-bg-card text-fg-2 transition-colors duration-300 group-hover:border-accent/30 group-hover:bg-accent-t group-hover:text-accent">
-                            {icon}
-                        </span>
+                    <A href={href} className={channelCard.root}>
+                        <span aria-hidden className={channelCard.icon}>{icon}</span>
                         <span className="min-w-0 flex-1">
-                            <span className="t-label block text-fg-3">{label}</span>
-                            <span className="mt-0.5 block truncate text-sm font-medium text-fg group-hover:text-accent transition-colors duration-200">{val}</span>
+                            <span className={channelCard.label}>{label}</span>
+                            <span className={channelCard.value}>{val}</span>
                         </span>
-                        <ArrowUpRight
-                            size={18}
-                            aria-hidden
-                            className="shrink-0 text-fg-3 transition-all duration-300 ease-expo group-hover:text-accent group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                        />
+                        <ArrowUpRight size={18} aria-hidden className={channelCard.arrow} />
                     </A>
                 </li>
                 );
             })}
+            {/* Fetched on click, so the number isn't in the page for scrapers */}
+            <li><RevealPhone /></li>
         </ul>
     );
 }
@@ -58,7 +53,6 @@ export function Contact() {
             const Icon = SOCIAL_ICON[id];
             return { label, val: handle, href, icon: <Icon size={17} />, ext: true };
         }),
-        { label: "Phone", val: contact.phone, href: `tel:${contact.phone.replace(/\s/g, "")}`, icon: <Phone size={17} strokeWidth={1.75} /> },
     ];
 
     return (

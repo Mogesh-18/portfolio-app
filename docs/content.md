@@ -9,7 +9,7 @@ Almost everything on the site comes from **[`data/resume.ts`](../data/resume.ts)
 | `name`, `firstName`, `lastName` | Hero name, header and menu wordmark (`firstName`), metadata, footer, JSON-LD, social images |
 | `title`, `secondaryTitle` | "Full Stack Developer" & "Technical Lead". Joined as `headline` for the page title, footer and social images. |
 | `email` | Contact section, mobile menu, footer, command palette |
-| `phone` | Contact section only |
+| `phone` | Contact section, behind a "Show phone number" button. A Server Action fetches it on click, so it is never in the page source for scrapers. |
 | `linkedin`, `linkedinHandle` | LinkedIn links; the handle is the visible text |
 | `github` *(optional)* | GitHub buttons and links appear wherever this is set |
 | `resumeUrl` *(optional)* | Shows "Download CV" in the Hero, mobile menu and command palette |

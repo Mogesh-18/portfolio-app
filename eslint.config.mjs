@@ -47,6 +47,7 @@ export default defineConfig([
             "components/layout/Header.tsx", "components/layout/MobileNav.tsx", "components/layout/useActiveSection.ts",
             "components/ui/**/*.tsx", "components/features/command-palette/**", "components/features/theme/**",
             "components/features/contact/ContactForm.tsx", "components/features/contact/CopyEmail.tsx",
+            "components/features/contact/RevealPhone.tsx",
             "hooks/**/*.ts",
         ],
         rules: {
