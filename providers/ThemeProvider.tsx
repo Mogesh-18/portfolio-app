@@ -7,13 +7,18 @@ interface ThemeProviderProps {
     children: ReactNode;
 }
 
+/**
+ * Light by default for every first-time visitor — the OS / browser colour-scheme
+ * preference is deliberately ignored (`enableSystem={false}`). A visitor's own
+ * choice from the theme toggle is remembered in localStorage ("theme").
+ */
 export function ThemeProvider({ children }: ThemeProviderProps) {
     return (
         <NextThemesProvider
             attribute="class"
-            defaultTheme="dark"
+            defaultTheme="light"
             enableSystem={false}
-            disableTransitionOnChange={false}
+            disableTransitionOnChange
         >
             {children}
         </NextThemesProvider>

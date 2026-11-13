@@ -1,4 +1,9 @@
-import type { ContactInfo, SkillGroup, Experience, Project, Education, StatItem, ResumeData } from "@/types";
+import type { ContactInfo, SkillGroup, Experience, Project, Education, StatItem } from "@/types";
+import { yearsSince } from "@/lib/dates";
+
+/** First professional role ("YYYY-MM"). Years of experience everywhere is computed from this. */
+export const careerStart = "2022-06";
+export const yearsOfExperience = yearsSince(careerStart);
 
 export const contact: ContactInfo = {
     name: "Mogesh Umapathi",
@@ -8,17 +13,44 @@ export const contact: ContactInfo = {
     email: "mogesh13@gmail.com",
     phone: "+91 82705 18820",
     linkedin: "https://www.linkedin.com/in/mogesh-umapathi-712878308",
+    linkedinHandle: "mogesh-umapathi",
+    github: "https://github.com/Mogesh-18",
+    // Drop your CV at public/resume.pdf and uncomment to show "Download CV" buttons:
+    // resumeUrl: "/resume.pdf",
     location: "Tiruvannamalai, Tamil Nadu, India",
-    openToRelocate: true,
+    locationShort: "Tiruvannamalai, IN",
+    timezone: "Asia/Kolkata",
+    timezoneLabel: "IST",
+    availability: "Available · Open to relocate",
 };
 
-export const summary = "Full Stack Developer and Technical Lead with 4 years of hands-on experience building production ERP, CRM, and SaaS web applications. I own the full development lifecycle — API architecture, database schema design, React JS dashboards, third-party integrations, CI/CD pipelines, and team mentorship.";
+export const summary = `Full Stack Developer and Technical Lead with ${yearsOfExperience}+ years of hands-on experience building production ERP, CRM, and SaaS web applications. I own the full development lifecycle — API architecture, database schema design, React JS dashboards, third-party integrations, CI/CD pipelines, and team mentorship.`;
 
+/** Short stack line shown under the Hero title */
+export const primaryStack = ["Laravel", "React JS", "MySQL", "REST API", "Jenkins"];
+
+/** Scrolling marquee in the Hero */
+export const marqueeStack = [
+    "Laravel", "React JS", "MySQL", "REST API", "Jenkins", "PHP OOP",
+    "Eloquent ORM", "Redux", "JWT Auth", "Git", "Agile / Scrum", "Flutter",
+    "WordPress", "Twilio", "SendGrid", "QuickBooks", "cPanel", "CI/CD",
+];
+
+export const integrations = [
+    { name: "Ozonetel", note: "VoIP / CTI" },
+    { name: "Twilio", note: "WhatsApp" },
+    { name: "SendGrid", note: "Email" },
+    { name: "QuickBooks", note: "Invoicing" },
+    { name: "AskEva", note: "WA Notifications" },
+    { name: "Buoy", note: "Insurance API" },
+];
+
+/** Headline metrics — shown as count-up tiles in the About bento */
 export const stats: StatItem[] = [
-    { value: "4+", label: "Years Experience" },
-    { value: "4+", label: "Production Apps Built" },
-    { value: "6", label: "APIs Integrated" },
-    { value: "40%", label: "PR Rework Reduced" },
+    { value: `${yearsOfExperience}+`, label: "Years shipping production software" },
+    { value: "4+", label: "ERP / CRM apps built from scratch" },
+    { value: String(integrations.length), label: "Third-party APIs integrated" },
+    { value: "40%", label: "Less PR rework after mentoring" },
 ];
 
 export const skillGroups: SkillGroup[] = [
@@ -59,9 +91,9 @@ export const experiences: Experience[] = [
         company: "Webtrendz Technologies",
         companyFull: "Webtrendz Technologies India Private Limited",
         location: "Tiruvannamalai, Tamil Nadu",
-        duration: "June 2022 – Present",
-        tenure: "3 yrs 9 mos",
+        startDate: careerStart,
         type: "Full-time",
+        team: "Leading a team of 4 developers",
         highlights: [
             "Designed and delivered 4+ production ERP and CRM web applications from scratch using Laravel — owning RESTful API design, business logic, Eloquent ORM, and MySQL database schema across 10+ relational modules per project.",
             "Introduced an Event Bus architecture in React JS to replace Redux for cross-component state management, reducing boilerplate code by 30%; adopted as the standard pattern across all subsequent full stack frontends.",
@@ -165,7 +197,3 @@ export const education: Education[] = [
     //   grade: "85.6%",
     // },
 ];
-
-export const resume: ResumeData = {
-    contact, summary, stats, skillGroups, experiences, projects, additionalWork, education,
-};

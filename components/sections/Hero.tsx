@@ -1,24 +1,22 @@
-"use client";
-import { useEffect, useState } from "react";
-import { contact, stats } from "@/data/resume";
-import { cn } from "@/lib/utils";
+import { ArrowRight, Download } from "lucide-react";
+import { contact, experiences, marqueeStack, primaryStack, yearsOfExperience } from "@/data/resume";
+import { formatTenure } from "@/lib/dates";
+import { delay } from "@/lib/utils";
+import { LocalTime } from "@/components/ui/LocalTime";
+import { Magnetic } from "@/components/ui/Magnetic";
+import { CvLink } from "@/components/ui/CvLink";
+import { GitHubIcon, LinkedInIcon } from "@/components/ui/BrandIcons";
 
-const STACK = [
-    "Laravel", "React JS", "MySQL", "REST API", "Jenkins", "PHP OOP",
-    "Eloquent ORM", "Redux", "JWT Auth", "Git", "Agile / Scrum", "Flutter",
-    "WordPress", "Twilio", "SendGrid", "QuickBooks", "cPanel", "CI/CD",
-];
-
-/* Marquee rendered OUTSIDE the wrap div so it spans full width — no negative margins */
+/* Full-width marquee with faded edges; pauses on hover/focus and under reduced motion */
 function Marquee() {
-    const doubled = [...STACK, ...STACK];
+    const doubled = [...marqueeStack, ...marqueeStack];
     return (
-        <div className="mt-12 overflow-hidden bg-bg-2 border-y border-border py-3.5">
+        <div className="marquee edge-mask relative overflow-hidden border-y border-border py-4">
             <div className="marquee-track" aria-hidden>
                 {doubled.map((s, i) => (
-                    <span key={i} className="flex items-center gap-4 px-4">
-                        <span className="whitespace-nowrap font-semibold text-sm text-fg-2">{s}</span>
-                        <span className="text-accent text-xs shrink-0">◆</span>
+                    <span key={i} className="flex items-center gap-6 px-3">
+                        <span className="whitespace-nowrap font-mono text-[13px] text-fg-2">{s}</span>
+                        <span className="text-fg-3/60 text-xs shrink-0">/</span>
                     </span>
                 ))}
             </div>
@@ -26,147 +24,153 @@ function Marquee() {
     );
 }
 
-export function Hero() {
-    const [mounted, setMounted] = useState(false);
-    useEffect(() => {
-        const t = setTimeout(() => setMounted(true), 60);
-        return () => clearTimeout(t);
-    }, []);
+const iconBtn =
+    "grid h-11 w-11 place-items-center rounded-full border border-border bg-bg-card/70 backdrop-blur text-fg-2 " +
+    "transition-colors duration-200 hover:text-accent hover:border-accent";
 
-    const anim = (d: number) => ({
-        opacity: mounted ? 1 : 0,
-        transform: mounted ? "none" : "translateY(20px)",
-        transition: `opacity .7s cubic-bezier(.22,1,.36,1) ${d}ms, transform .7s cubic-bezier(.22,1,.36,1) ${d}ms`,
-    });
+export function Hero() {
+    const current = experiences[0];
+    const initials = `${contact.firstName[0] ?? ""}${contact.lastName[0] ?? ""}`;
 
     return (
-        <section aria-label="Introduction" className="relative min-h-screen flex flex-col justify-center pb-0 overflow-x-hidden" >
-            <div
-                aria-hidden
-                className="pointer-events-none absolute top-0 right-0 w-[min(700px,100vw)] h-[500px]"
-                style={{
-                    background:
-                        "radial-gradient(ellipse at top right, rgba(79,70,229,0.08) 0%, transparent 65%)",
-                }}
-            />
+        <section id="home" aria-label="Introduction" className="relative min-h-[100svh] flex flex-col overflow-hidden">
+            {/* Backdrop: masked dot grid + soft accent glows */}
+            <div aria-hidden className="bg-dots pointer-events-none absolute inset-0" />
+            <div aria-hidden className="pointer-events-none absolute -top-48 right-[-10%] h-[560px] w-[760px] rounded-full bg-v-violet/20 blur-[120px]" />
+            <div aria-hidden className="pointer-events-none absolute bottom-0 -left-40 h-[360px] w-[520px] rounded-full bg-v-pink/10 blur-[120px]" />
 
-            <div className="wrap pt-28 pb-0">
-                <div className="grid lg:grid-cols-[1fr_400px] gap-10 lg:gap-16 items-center">
+            <div className="wrap relative flex flex-1 items-center pt-28 pb-12 sm:pt-32">
+                <div className="grid w-full gap-12 lg:grid-cols-[1fr_380px] lg:gap-16 xl:gap-24 items-center">
                     <div className="min-w-0">
-                        <div style={anim(0)}
-                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-bg-card mb-7 shadow-sm max-w-full">
-                            <span className="relative flex h-2 w-2 shrink-0">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                        <p className="enter inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-bg-card/70 backdrop-blur mb-7 max-w-full">
+                            <span className="relative flex h-2 w-2 shrink-0" aria-hidden>
+                                <span className="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                             </span>
-                            <span className="t-label text-fg-2 truncate">Available · Open to relocate</span>
-                        </div>
+                            <span className="t-label text-fg-2 truncate">{contact.availability}</span>
+                        </p>
 
-                        <h1 style={anim(80)} className="overflow-hidden">
-                            <span className="t-display block text-fg break-words">{contact.firstName}</span>
-                            <span className="t-display block break-words" style={{ color: "var(--accent)" }}>
-                                {contact.lastName}
+                        <h1>
+                            <span className="line-mask t-display text-fg">
+                                <span style={delay(60)}>{contact.firstName}</span>
+                            </span>{" "}
+                            <span className="line-mask t-display bg-[image:var(--grad-brand)] bg-clip-text text-transparent print:bg-none print:text-fg">
+                                <span style={delay(160)}>{contact.lastName}</span>
                             </span>
                         </h1>
 
-                        <p style={anim(160)} className="mt-5 text-lg sm:text-xl font-bold text-fg-2 leading-snug">
-                            Full Stack Developer{" "}
-                            <span className="text-fg-3 font-normal">&amp;</span>{" "}
-                            Technical Lead
-                            <span className="block text-sm font-normal text-fg-3 mt-1">
-                                Laravel · React JS · MySQL · REST API · 4 Years
+                        <p className="enter mt-6 text-lg sm:text-2xl font-medium tracking-tight text-fg leading-snug" style={delay(320)}>
+                            {contact.title} <span className="text-fg-3">&amp;</span> Technical Lead
+                            <span className="block mt-2 font-mono text-[13px] font-normal tracking-normal text-fg-3">
+                                {primaryStack.slice(0, 4).join(" · ")} · {yearsOfExperience}+ yrs
                             </span>
                         </p>
 
-                        <p style={anim(240)} className="mt-5 text-[15px] text-fg-2 leading-relaxed max-w-lg">
+                        <p className="enter mt-5 text-[15px] sm:text-base text-fg-2 leading-relaxed max-w-xl" style={delay(400)}>
                             I build production ERP, CRM, and SaaS applications end-to-end — owning API
-                            architecture, database design, React dashboards, and CI/CD pipelines. Currently
-                            leading a team of 4 developers at Webtrendz Technologies.
+                            architecture, database design, React dashboards, and CI/CD pipelines.
                         </p>
 
-                        <div style={anim(320)} className="mt-7 flex flex-wrap items-center gap-3">
-                            <a href="#projects"
-                                onClick={e => {
-                                    e.preventDefault();
-                                    document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
-                                }}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accent-2 text-white font-semibold text-sm rounded-xl transition-colors duration-200 shadow-sm"
+                        <div data-print="hide" className="enter mt-8 flex flex-wrap items-center gap-3" style={delay(480)}>
+                            <Magnetic>
+                                <a
+                                    href="#projects"
+                                    className="group inline-flex items-center gap-2 px-5 py-3 bg-[image:var(--grad-solid)] text-white font-semibold text-sm rounded-full transition-[filter] duration-300 hover:brightness-110 shadow-[0_10px_30px_-10px_var(--v-violet)]"
+                                >
+                                    See my work
+                                    <ArrowRight size={15} strokeWidth={2.2} aria-hidden className="transition-transform duration-300 ease-expo group-hover:translate-x-0.5" />
+                                </a>
+                            </Magnetic>
+
+                            <a
+                                href="#contact"
+                                className="inline-flex items-center gap-2 px-5 py-3 border border-border hover:border-accent bg-bg-card/70 backdrop-blur text-fg hover:text-accent font-semibold text-sm rounded-full transition-colors duration-200"
                             >
-                                See My Work <span aria-hidden>→</span>
+                                Get in touch
                             </a>
 
-                            <a href="#contact"
-                                onClick={e => {
-                                    e.preventDefault();
-                                    document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
-                                }}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 border border-border hover:border-accent bg-bg-card text-fg-2 hover:text-accent font-semibold text-sm rounded-xl transition-all duration-200"
-                            >
-                                Get in Touch
+                            {contact.resumeUrl && (
+                                <CvLink
+                                    href={contact.resumeUrl}
+                                    source="hero"
+                                    className="inline-flex items-center gap-2 px-4 py-3 text-fg-2 hover:text-accent font-semibold text-sm rounded-full transition-colors duration-200"
+                                >
+                                    <Download size={15} strokeWidth={2} aria-hidden />
+                                    Download CV
+                                </CvLink>
+                            )}
+
+                            <span aria-hidden className="mx-1 hidden h-6 w-px bg-border sm:block" />
+
+                            <a href={contact.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn (opens in a new tab)" className={iconBtn}>
+                                <LinkedInIcon size={16} />
                             </a>
+                            {contact.github && (
+                                <a href={contact.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub (opens in a new tab)" className={iconBtn}>
+                                    <GitHubIcon size={16} />
+                                </a>
+                            )}
                         </div>
-
-                        <p style={anim(400)} className="mt-5 text-xs text-fg-3 font-medium">
-                            {contact.location} · {contact.phone}
-                        </p>
                     </div>
 
-                    <div style={anim(200)} className="w-full min-w-0">
-                        <div className="rounded-2xl border border-border bg-bg-card overflow-hidden w-full" style={{ boxShadow: "var(--shadow-4)" }} >
-                            <div className="px-5 py-5" style={{ background: "var(--accent)" }}>
-                                <div className="flex items-center justify-between mb-1 gap-2 flex-wrap">
-                                    <span className="t-label text-indigo-200">Current Position</span>
-                                    <span className="flex items-center gap-1.5 text-xs font-bold text-white bg-white/20 px-2 py-0.5 rounded-full shrink-0">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                                        Active
-                                    </span>
-                                </div>
-                                <p className="font-bold text-white text-base sm:text-lg leading-tight">
-                                    Senior Full Stack Developer
-                                </p>
-                                <p className="text-indigo-200 text-sm mt-0.5">
-                                    Webtrendz Technologies · 3 yrs 9 mos
-                                </p>
-                            </div>
+                    {/* "Now" status panel */}
+                    {current && (
+                        <aside
+                            aria-label="Current status"
+                            className="enter relative w-full min-w-0 rounded-2xl border border-border bg-bg-card/80 backdrop-blur p-5 sm:p-6"
+                            style={{ ...delay(560), boxShadow: "var(--shadow-3)" }}
+                        >
+                            {/* top hairline glow */}
+                            <span aria-hidden className="pointer-events-none absolute inset-x-6 -top-px h-px bg-gradient-to-r from-transparent via-v-violet/70 to-transparent" />
 
-                            <div className="grid grid-cols-2 divide-x divide-y divide-border">
-                                {stats.map(({ value, label }) => (
-                                    <div key={label} className="px-4 sm:px-5 py-4 sm:py-5 hover:bg-bg-2 transition-colors duration-200" >
-                                        <p className="font-extrabold text-2xl sm:text-3xl text-accent leading-none">
-                                            {value}
-                                        </p>
-                                        <p className="text-xs font-semibold text-fg-2 mt-1.5 leading-tight">{label}</p>
+                            <div className="flex items-center gap-4">
+                                <div className="relative shrink-0" aria-hidden>
+                                    <div className="grid h-14 w-14 place-items-center rounded-2xl bg-[image:var(--grad-solid)] font-semibold tracking-tight text-lg text-white shadow-[0_8px_24px_-10px_var(--accent-solid)]">
+                                        {initials}
                                     </div>
-                                ))}
-                            </div>
-
-                            <div className="px-5 py-4 border-t border-border bg-bg-2">
-                                <p className="t-label text-fg-3 mb-2.5">Primary Stack</p>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {["Laravel", "React JS", "MySQL", "Jenkins", "REST API"].map(t => (
-                                        <span
-                                            key={t}
-                                            className="px-2 py-0.5 text-xs font-semibold rounded-md bg-accent-t text-accent border border-accent/20"
-                                        >
-                                            {t}
-                                        </span>
-                                    ))}
+                                    <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-[3px] border-bg-card bg-emerald-500" />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="t-label text-fg-3">Now</p>
+                                    <p className="mt-1 font-semibold tracking-tight text-fg leading-snug">{current.role}</p>
+                                    <p className="text-sm text-fg-2 truncate">@ {current.company}</p>
                                 </div>
                             </div>
-                        </div>
-                    </div>
+
+                            <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-border pt-5 text-sm">
+                                <div>
+                                    <dt className="t-label text-fg-3">Tenure</dt>
+                                    <dd className="mt-1 font-mono text-fg">{formatTenure(current.startDate, current.endDate)}</dd>
+                                </div>
+                                <div>
+                                    <dt className="t-label text-fg-3">Local time</dt>
+                                    <dd className="mt-1 font-mono text-fg">
+                                        <LocalTime timeZone={contact.timezone} label={contact.timezoneLabel} />
+                                    </dd>
+                                </div>
+                                <div className="col-span-2">
+                                    <dt className="t-label text-fg-3">Based in</dt>
+                                    <dd className="mt-1 text-fg">{contact.locationShort} · open to relocate</dd>
+                                </div>
+                                {current.team && (
+                                    <div className="col-span-2">
+                                        <dt className="t-label text-fg-3">Team</dt>
+                                        <dd className="mt-1 text-fg">{current.team}</dd>
+                                    </div>
+                                )}
+                            </dl>
+
+                            <ul className="mt-5 flex flex-wrap gap-1.5 border-t border-border pt-5" aria-label="Primary stack">
+                                {primaryStack.map(s => (
+                                    <li key={s} className="rounded-md border border-accent/20 bg-accent-t px-2 py-0.5 text-xs font-medium text-accent">{s}</li>
+                                ))}
+                            </ul>
+                        </aside>
+                    )}
                 </div>
             </div>
 
             <Marquee />
-
-            <div style={anim(600)} className="flex justify-center mt-10 mb-4">
-                <div className="flex flex-col items-center gap-1.5">
-                    <div className="w-5 h-8 rounded-full border-2 border-border flex items-start justify-center p-1">
-                        <div className="w-1 h-2 rounded-full bg-fg-3 animate-bounce" />
-                    </div>
-                </div>
-            </div>
         </section>
     );
 }
