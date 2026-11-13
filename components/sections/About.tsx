@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import {
-    Briefcase, CalendarClock, FileText, Globe, GitPullRequest, GraduationCap, Handshake,
+    Briefcase, CalendarClock, Globe, GitPullRequest, GraduationCap,
     Layers, MapPin, Plug, RefreshCw, Smartphone, Sparkles, type LucideIcon,
 } from "lucide-react";
 import { Reveal } from "@/components/ui/Reveal";
@@ -9,12 +9,17 @@ import { Accent } from "@/components/ui/Accent";
 import { CountUp } from "@/components/ui/CountUp";
 import { LocalTime } from "@/components/ui/LocalTime";
 import { SpotlightGroup } from "@/components/ui/Spotlight";
-import { summary, additionalWork, contact, education, experiences, primaryStack, stats } from "@/data/resume";
+import { ToneIcon } from "@/components/ui/ToneIcon";
+import { LiveDot } from "@/components/ui/LiveDot";
+import { Tag } from "@/components/ui/Tag";
+import {
+    summary, additionalWork, contact, currentRole, education, openTo, primaryStack, stats, type StatId,
+} from "@/data/resume";
+import { OPEN_TO_ICON } from "@/config/icons";
+import type { OpenToKind, SideWorkKind } from "@/types";
 import { formatRange, formatTenure } from "@/lib/dates";
+import { tone, type ToneName, type TonePair } from "@/lib/tone";
 import { cn } from "@/lib/utils";
-
-/** Colour for a tile: drives its icon chip, spotlight glow and accents via --tone / --tone-2 */
-const tone = (a: string, b = a) => ({ "--tone": `var(--v-${a})`, "--tone-2": `var(--v-${b})` } as CSSProperties);
 
 function Tile({ className, delay, children, label, icon: Icon, toneStyle }: {
     className?: string;
@@ -28,21 +33,17 @@ function Tile({ className, delay, children, label, icon: Icon, toneStyle }: {
         <Reveal
             delay={delay}
             className={cn(
-                "spotlight group/tile relative overflow-hidden rounded-2xl border border-border bg-bg-card p-5 sm:p-6 flex flex-col min-w-0",
+                "spotlight group/tile relative overflow-hidden rounded-2xl border border-border bg-bg-card p-5 sm:p-6 flex flex-col min-w-0 shadow-elev-1",
                 "transition-[border-color,translate] duration-300 ease-expo hover:-translate-y-1 hover:border-(--tone)/40",
                 className
             )}
-            style={{ ...toneStyle, boxShadow: "var(--shadow-1)" }}
+            style={toneStyle}
         >
             {/* tone glow in the corner */}
             <span aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-(--tone)/15 blur-3xl transition-opacity duration-500 opacity-60 group-hover/tile:opacity-100" />
             {label && (
                 <h3 className="relative t-label mb-4 flex items-center gap-2.5 text-fg-3">
-                    {Icon && (
-                        <span aria-hidden className="grid h-7 w-7 place-items-center rounded-lg bg-(--tone)/12 text-(--tone) ring-1 ring-(--tone)/25">
-                            <Icon size={14} strokeWidth={2} />
-                        </span>
-                    )}
+                    {Icon && <ToneIcon icon={Icon} size="sm" strokeWidth={2} />}
                     {label}
                 </h3>
             )}
@@ -51,30 +52,26 @@ function Tile({ className, delay, children, label, icon: Icon, toneStyle }: {
     );
 }
 
-/* Per-metric icon + colour pair, in the order of `stats` */
-const STAT_STYLE: { icon: LucideIcon; tone: [string, string] }[] = [
-    { icon: CalendarClock, tone: ["indigo", "violet"] },
-    { icon: Layers, tone: ["violet", "fuchsia"] },
-    { icon: Plug, tone: ["cyan", "blue"] },
-    { icon: GitPullRequest, tone: ["pink", "orange"] },
-];
+/* Icon + colour pair per metric — keyed by stat id, so a new stat without a style fails typecheck */
+const STAT_STYLE: Record<StatId, { icon: LucideIcon; tone: TonePair }> = {
+    years: { icon: CalendarClock, tone: ["indigo", "violet"] },
+    apps: { icon: Layers, tone: ["violet", "fuchsia"] },
+    integrations: { icon: Plug, tone: ["cyan", "blue"] },
+    mentoring: { icon: GitPullRequest, tone: ["pink", "orange"] },
+};
 
-/* Side-work icon + colour by keyword */
-function workStyle(text: string): { icon: LucideIcon; tone: string } {
-    if (/wordpress/i.test(text)) return { icon: Globe, tone: "cyan" };
-    if (/flutter|android/i.test(text)) return { icon: Smartphone, tone: "emerald" };
-    if (/joomla|upgrade|migrat/i.test(text)) return { icon: RefreshCw, tone: "orange" };
-    return { icon: Sparkles, tone: "violet" };
-}
+/* Side-work icon + colour by kind */
+const WORK_STYLE: Record<SideWorkKind, { icon: LucideIcon; tone: ToneName }> = {
+    web: { icon: Globe, tone: "cyan" },
+    mobile: { icon: Smartphone, tone: "emerald" },
+    cms: { icon: RefreshCw, tone: "orange" },
+    other: { icon: Sparkles, tone: "violet" },
+};
 
-const OPEN_TO = [
-    { label: "Full-time roles", icon: Briefcase },
-    { label: "Contract work", icon: FileText },
-    { label: "Technical consulting", icon: Handshake },
-];
+const OPEN_TO_TONE: Record<OpenToKind, ToneName> = { "full-time": "indigo", contract: "violet", consulting: "pink" };
 
 export function About() {
-    const current = experiences[0];
+    const current = currentRole;
     const edu = education[0];
 
     return (
@@ -98,25 +95,26 @@ export function About() {
                             <div>
                                 <p className="t-label text-fg-3 mb-2.5">Open to</p>
                                 <ul className="flex flex-wrap gap-2">
-                                    {OPEN_TO.map(({ label, icon: Icon }, i) => (
+                                    {openTo.map(({ kind, label }) => {
+                                        const Icon = OPEN_TO_ICON[kind];
+                                        return (
                                         <li
-                                            key={label}
-                                            style={tone(["indigo", "violet", "pink"][i] ?? "indigo")}
+                                            key={kind}
+                                            style={tone(OPEN_TO_TONE[kind])}
                                             className="inline-flex items-center gap-1.5 rounded-full border border-(--tone)/30 bg-(--tone)/10 px-3 py-1.5 text-xs font-medium text-fg"
                                         >
                                             <Icon size={13} aria-hidden className="text-(--tone)" />
                                             {label}
                                         </li>
-                                    ))}
+                                        );
+                                    })}
                                 </ul>
                             </div>
                             <div>
                                 <p className="t-label text-fg-3 mb-2.5">Primary stack</p>
                                 <ul className="flex flex-wrap gap-1.5">
                                     {primaryStack.map(s => (
-                                        <li key={s} className="rounded-md border border-border bg-bg-2 px-2.5 py-1 font-mono text-xs text-fg">
-                                            {s}
-                                        </li>
+                                        <Tag key={s} variant="mono" className="text-fg">{s}</Tag>
                                     ))}
                                 </ul>
                             </div>
@@ -127,7 +125,7 @@ export function About() {
                     {current && (
                         <Tile className="sm:col-span-2 lg:col-span-5" delay={60} label="Currently" icon={Briefcase} toneStyle={tone("indigo", "violet")}>
                             <div className="flex items-start gap-4">
-                                <span aria-hidden className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-[image:var(--grad-solid)] font-mono text-sm font-medium text-white shadow-[0_10px_24px_-10px_var(--v-violet)]">
+                                <span aria-hidden className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-grad-solid font-mono text-sm font-medium text-white shadow-[0_10px_24px_-10px_var(--v-violet)]">
                                     {current.company.split(/\s+/).slice(0, 2).map(w => w[0]).join("")}
                                 </span>
                                 <div className="min-w-0">
@@ -149,17 +147,14 @@ export function About() {
                         <div className="flex items-end justify-between gap-4">
                             <div>
                                 <p className="font-semibold tracking-tight text-fg text-lg">{contact.locationShort}</p>
-                                <p className="mt-1 text-sm text-fg-2">Open to relocate — immediately</p>
+                                <p className="mt-1 text-sm text-fg-2">{contact.relocation}</p>
                             </div>
                             <p className="text-right">
                                 <span className="block font-mono text-3xl tracking-tight text-fg leading-none">
                                     <LocalTime timeZone={contact.timezone} label="" />
                                 </span>
                                 <span className="mt-1 inline-flex items-center gap-1.5 t-label text-fg-3">
-                                    <span className="relative flex h-1.5 w-1.5" aria-hidden>
-                                        <span className="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full bg-v-emerald opacity-75" />
-                                        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-v-emerald" />
-                                    </span>
+                                    <LiveDot size="sm" />
                                     Local · {contact.timezoneLabel}
                                 </span>
                             </p>
@@ -168,23 +163,21 @@ export function About() {
 
                     {/* Metrics — each in its own colour; number in a gradient, counts up in view */}
                     {stats.map((s, i) => {
-                        const st = STAT_STYLE[i] ?? STAT_STYLE[0]!;
+                        const st = STAT_STYLE[s.id];
                         const Icon = st.icon;
                         const pct = s.value.endsWith("%") ? parseFloat(s.value) : null;
                         return (
                             <Tile key={s.label} delay={i * 60} className="lg:col-span-3 gap-6" toneStyle={tone(...st.tone)}>
                                 <div className="flex items-start justify-between gap-3">
-                                    <p className="font-mono font-medium text-5xl tracking-tighter leading-none bg-[linear-gradient(135deg,var(--tone),var(--tone-2))] bg-clip-text text-transparent print:bg-none print:text-fg">
+                                    <p className="font-mono font-medium text-5xl tracking-tighter leading-none bg-tone-grad bg-clip-text text-transparent print:bg-none print:text-fg">
                                         <CountUp value={s.value} />
                                     </p>
-                                    <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-(--tone)/12 text-(--tone) ring-1 ring-(--tone)/25">
-                                        <Icon size={17} strokeWidth={1.75} />
-                                    </span>
+                                    <ToneIcon icon={Icon} size="lg" />
                                 </div>
                                 <div className="mt-auto">
                                     <div aria-hidden className="mb-3 h-1.5 overflow-hidden rounded-full bg-bg-3">
                                         <div
-                                            className="h-full rounded-full bg-[linear-gradient(90deg,var(--tone),var(--tone-2))]"
+                                            className="h-full rounded-full bg-tone-grad-x"
                                             style={{ width: `${pct ?? 100}%`, opacity: pct === null ? 0.35 : 1 }}
                                         />
                                     </div>
@@ -198,7 +191,7 @@ export function About() {
                     {edu && (
                         <Tile className="sm:col-span-2 lg:col-span-4" label="Education" icon={GraduationCap} toneStyle={tone("amber", "orange")}>
                             <p className="font-semibold tracking-tight text-fg text-lg leading-snug">
-                                {edu.degree.replace(/^Bachelor of Science \(B\.Sc\.\) in /, "B.Sc. ")}
+                                {edu.shortDegree ?? edu.degree}
                             </p>
                             <p className="mt-1 text-sm text-fg-2 leading-snug">{edu.institution}</p>
                             <p className="mt-auto pt-5 font-mono text-xs text-fg-3">{edu.board} · {edu.duration}</p>
@@ -208,19 +201,17 @@ export function About() {
                     {/* Side work */}
                     <Tile className="sm:col-span-2 lg:col-span-8" label="Also contributed to" icon={Layers} toneStyle={tone("cyan", "emerald")}>
                         <ul className="grid gap-3 md:grid-cols-3">
-                            {additionalWork.map((item, i) => {
-                                const ws = workStyle(item);
+                            {additionalWork.map(item => {
+                                const ws = WORK_STYLE[item.kind];
                                 const Icon = ws.icon;
                                 return (
                                     <li
-                                        key={i}
+                                        key={item.text}
                                         style={tone(ws.tone)}
                                         className="group/item rounded-xl border border-border bg-bg-2/60 p-4 text-sm text-fg-2 leading-relaxed min-w-0 transition-colors duration-300 hover:border-(--tone)/40"
                                     >
-                                        <span aria-hidden className="mb-3 grid h-8 w-8 place-items-center rounded-lg bg-(--tone)/12 text-(--tone) ring-1 ring-(--tone)/25">
-                                            <Icon size={15} strokeWidth={1.75} />
-                                        </span>
-                                        {item}
+                                        <ToneIcon icon={Icon} className="mb-3" />
+                                        {item.text}
                                     </li>
                                 );
                             })}

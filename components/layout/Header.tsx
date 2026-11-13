@@ -3,12 +3,14 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback, useSyncExter
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search } from "lucide-react";
-import { openCommandPalette } from "@/components/ui/CommandPalette";
+import { openCommandPalette } from "@/components/features/command-palette/events";
 import { cn } from "@/lib/utils";
 import { NAV_LINKS } from "@/config/nav";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { ThemeToggle } from "@/components/features/theme/ThemeToggle";
+import { buttonVariants } from "@/components/ui/Button";
 import { MobileNav } from "@/components/layout/MobileNav";
-import { useActiveSection } from "@/hooks/useActiveSection";
+import { useActiveSection } from "@/components/layout/useActiveSection";
+import type { ClientData } from "@/data/client";
 
 const noop = () => () => {};
 /** Modifier key label: "⌘" on Apple devices, "Ctrl" elsewhere */
@@ -22,9 +24,9 @@ function useModifierKey() {
 
 const kbd =
     "inline-grid h-6 min-w-6 place-items-center rounded-md border border-border bg-bg-2 px-1.5 " +
-    "font-mono text-[11px] leading-none text-fg-2 shadow-[inset_0_-1px_0_var(--border)]";
+    "font-mono text-2xs leading-none text-fg-2 shadow-[inset_0_-1px_0_var(--border)]";
 
-export function Header() {
+export function Header({ data }: { data: ClientData }) {
     const mod = useModifierKey();
     const [scrolled, setScrolled] = useState(false);
     const pathname = usePathname();
@@ -97,17 +99,17 @@ export function Header() {
                             "pointer-events-auto flex items-center justify-between gap-4 rounded-full border py-2 pl-5 pr-2",
                             "transition-[background-color,border-color,box-shadow] duration-300",
                             scrolled
-                                ? "bg-bg/75 backdrop-blur-xl border-border shadow-[0_8px_32px_-12px_oklch(0_0_0/0.25)]"
+                                ? "bg-bg/75 backdrop-blur-xl border-border shadow-float"
                                 : "bg-transparent border-transparent"
                         )}
                     >
                         <Link
                             href="/"
                             onClick={onWordmark}
-                            aria-label="Mogesh Umapathi — home"
-                            className="group font-semibold text-[15px] tracking-tight text-fg hover:text-accent transition-colors duration-200 shrink-0"
+                            aria-label={`${data.contact.name} — home`}
+                            className="group font-semibold text-15 tracking-tight text-fg hover:text-accent transition-colors duration-200 shrink-0"
                         >
-                            Mogesh
+                            {data.contact.firstName}
                             <span className="text-accent transition-transform duration-200 inline-block group-hover:rotate-12">.</span>
                         </Link>
 
@@ -146,7 +148,7 @@ export function Header() {
                                 )}
                             >
                                 <Search size={15} aria-hidden className="shrink-0 transition-colors group-hover/search:text-v-violet" />
-                                <span className="hidden xl:inline mr-auto text-[13px]">Search…</span>
+                                <span className="hidden xl:inline mr-auto text-13">Search…</span>
                                 <span className="hidden md:inline-flex items-center gap-1" aria-hidden>
                                     <kbd className={kbd}>{mod}</kbd>
                                     <kbd className={kbd}>K</kbd>
@@ -155,7 +157,7 @@ export function Header() {
                             <ThemeToggle />
                             <Link
                                 href="/#contact"
-                                className="hidden lg:inline-flex t-label px-4 py-2.5 bg-[image:var(--grad-solid)] text-white rounded-full transition-[filter] duration-300 hover:brightness-110 whitespace-nowrap shadow-[0_8px_24px_-10px_var(--v-violet)]"
+                                className={buttonVariants({ size: "sm", className: "hidden lg:inline-flex" })}
                             >
                                 Hire Me
                             </Link>
@@ -181,7 +183,7 @@ export function Header() {
                 </div>
             </header>
 
-            <MobileNav open={open} onClose={closeMenu} active={active} />
+            <MobileNav data={data} open={open} onClose={closeMenu} active={active} />
         </>
     );
 }

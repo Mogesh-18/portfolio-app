@@ -1,0 +1,140 @@
+/* Design tokens: colour, elevation and gradients for both themes, plus the
+   Tailwind theme mapping (@theme inline). See docs/design-system.md. */
+
+/* ─── Design tokens ─────────────────────────────────────────────── */
+/* OKLCH, cool-neutral ramp (hue 275) + indigo accent (hue 277).
+   Text tokens are checked against every surface for WCAG AA (≥4.5:1):
+   light fg-3 ≥4.74, dark fg-3 ≥5.39, white on accent-solid 6.28. */
+:root {
+    --bg: oklch(1 0 0);
+    --bg-2: oklch(0.985 0.003 275);
+    --bg-3: oklch(0.962 0.006 275);
+    --bg-card: oklch(1 0 0);
+
+    --fg: oklch(0.21 0.02 275);
+    --fg-2: oklch(0.45 0.02 275);
+    --fg-3: oklch(0.53 0.017 275);
+
+    --accent: oklch(0.511 0.23 277);
+    --accent-tint: oklch(0.965 0.02 277);
+    /* Solid fills carrying white text — same in both themes for AA contrast */
+    --accent-solid: oklch(0.511 0.23 277);
+
+    /* Status text colours (AA on every surface); dots and fills use --v-emerald */
+    --success: oklch(0.508 0.118 165.6);
+    --danger: oklch(0.577 0.245 27.3);
+
+    /* Hairline borders: translucent so they sit naturally on any surface */
+    --border: oklch(0.21 0.02 275 / 0.1);
+    --border-2: oklch(0.21 0.02 275 / 0.18);
+
+    /* Restrained elevation — borders do most of the separation work */
+    --shadow-1: 0 1px 2px oklch(0.21 0.02 275 / 0.04);
+    --shadow-2: 0 1px 2px oklch(0.21 0.02 275 / 0.04), 0 2px 8px -2px oklch(0.21 0.02 275 / 0.05);
+    --shadow-3: 0 1px 2px oklch(0.21 0.02 275 / 0.04), 0 8px 24px -8px oklch(0.21 0.02 275 / 0.08);
+    /* Floating chrome (header pill, scroll-to-top, overlays) */
+    --shadow-float: 0 10px 32px -12px oklch(0 0 0 / 0.28);
+
+    /* Vibrant palette — for icons, glows, borders, gradients and large display text.
+       Small body text stays on the fg tokens above for AA contrast. */
+    --v-indigo: oklch(0.585 0.233 277);
+    --v-violet: oklch(0.606 0.25 292);
+    --v-fuchsia: oklch(0.667 0.295 322);
+    --v-pink: oklch(0.656 0.241 354);
+    --v-orange: oklch(0.705 0.213 47);
+    --v-amber: oklch(0.769 0.188 70);
+    --v-emerald: oklch(0.696 0.17 162);
+    --v-cyan: oklch(0.715 0.143 215);
+    --v-blue: oklch(0.623 0.214 259);
+
+    /* Brand gradient (display text, rails, glows) */
+    --grad-brand: linear-gradient(100deg, var(--v-indigo), var(--v-violet) 45%, var(--v-pink));
+    /* Solid gradient that carries white text — every stop ≥4.6:1 with white */
+    --grad-solid: linear-gradient(100deg, #4f46e5, #7c3aed 55%, #c026d3);
+}
+
+.dark {
+    --bg: oklch(0.145 0.005 275);
+    --bg-2: oklch(0.172 0.007 275);
+    --bg-3: oklch(0.215 0.01 275);
+    --bg-card: oklch(0.185 0.008 275);
+
+    --fg: oklch(0.965 0.006 275);
+    --fg-2: oklch(0.76 0.015 275);
+    --fg-3: oklch(0.67 0.015 275);
+
+    --accent: oklch(0.73 0.14 277);
+    --accent-tint: oklch(0.25 0.06 277);
+
+    --success: oklch(0.765 0.177 163);
+    --danger: oklch(0.704 0.191 22.2);
+
+    --border: oklch(1 0 0 / 0.08);
+    --border-2: oklch(1 0 0 / 0.15);
+
+    /* On dark surfaces drop shadows vanish — use an inset top highlight instead */
+    --shadow-1: inset 0 1px 0 0 oklch(1 0 0 / 0.04);
+    --shadow-2: inset 0 1px 0 0 oklch(1 0 0 / 0.05), 0 2px 8px -2px oklch(0 0 0 / 0.4);
+    --shadow-3: inset 0 1px 0 0 oklch(1 0 0 / 0.05), 0 8px 24px -8px oklch(0 0 0 / 0.5);
+    --shadow-float: inset 0 1px 0 0 oklch(1 0 0 / 0.06), 0 12px 36px -12px oklch(0 0 0 / 0.7);
+
+    /* Lighter, more luminous variants on dark surfaces */
+    --v-indigo: oklch(0.673 0.182 277);
+    --v-violet: oklch(0.702 0.183 293);
+    --v-fuchsia: oklch(0.74 0.238 322);
+    --v-pink: oklch(0.718 0.202 349);
+    --v-orange: oklch(0.75 0.183 55);
+    --v-amber: oklch(0.828 0.189 84);
+    --v-emerald: oklch(0.765 0.177 163);
+    --v-cyan: oklch(0.789 0.154 211);
+    --v-blue: oklch(0.707 0.165 254);
+}
+
+/* Expose tokens to Tailwind utilities (bg-bg, text-fg-2, border-border/60, …).
+   `inline` makes utilities reference the variables directly so they follow the theme. */
+@theme inline {
+    --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+    --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+    --font-serif: var(--font-instrument), ui-serif, Georgia, serif;
+
+    /* In-between type sizes (Tailwind's scale jumps 12 → 14 → 16px) */
+    --text-2xs: 0.6875rem;
+    --text-2xs--line-height: 1.125rem;
+    --text-13: 0.8125rem;
+    --text-13--line-height: 1.375rem;
+    --text-15: 0.9375rem;
+    --text-15--line-height: 1.5625rem;
+
+    /* Elevation: shadow-elev-1 … shadow-elev-3, shadow-float */
+    --shadow-elev-1: var(--shadow-1);
+    --shadow-elev-2: var(--shadow-2);
+    --shadow-elev-3: var(--shadow-3);
+    --shadow-float: var(--shadow-float);
+
+    --color-v-indigo: var(--v-indigo);
+    --color-v-violet: var(--v-violet);
+    --color-v-fuchsia: var(--v-fuchsia);
+    --color-v-pink: var(--v-pink);
+    --color-v-orange: var(--v-orange);
+    --color-v-amber: var(--v-amber);
+    --color-v-emerald: var(--v-emerald);
+    --color-v-cyan: var(--v-cyan);
+    --color-v-blue: var(--v-blue);
+
+    --color-bg: var(--bg);
+    --color-bg-2: var(--bg-2);
+    --color-bg-3: var(--bg-3);
+    --color-bg-card: var(--bg-card);
+    --color-fg: var(--fg);
+    --color-fg-2: var(--fg-2);
+    --color-fg-3: var(--fg-3);
+    --color-accent: var(--accent);
+    --color-accent-t: var(--accent-tint);
+    --color-accent-solid: var(--accent-solid);
+    --color-success: var(--success);
+    --color-danger: var(--danger);
+    --color-border: var(--border);
+    --color-border-2: var(--border-2);
+
+    --ease-expo: cubic-bezier(0.22, 1, 0.36, 1);
+}

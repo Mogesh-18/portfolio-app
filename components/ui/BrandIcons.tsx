@@ -17,3 +17,6 @@ export function LinkedInIcon({ size = 16, ...props }: SVGProps<SVGSVGElement> & 
         </svg>
     );
 }
+
+/** Brand mark for each social profile id (lib/social.ts) */
+export const SOCIAL_ICON = { linkedin: LinkedInIcon, github: GitHubIcon } as const;

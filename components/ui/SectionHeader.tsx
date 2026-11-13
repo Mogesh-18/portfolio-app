@@ -23,7 +23,7 @@ export function SectionHeader({ index, label, title, description, meta, titleId,
     return (
         <Reveal as="header" className={cn("mb-10 lg:mb-14", className)}>
             <p className="mb-5 inline-flex items-center gap-2.5 rounded-full border border-border bg-bg-card/70 py-1 pl-1 pr-3.5 backdrop-blur">
-                <span className="rounded-full bg-[image:var(--grad-solid)] px-2 py-0.5 font-mono text-[11px] font-medium text-white">
+                <span className="rounded-full bg-grad-solid px-2 py-0.5 font-mono text-2xs font-medium text-white">
                     {String(index).padStart(2, "0")}
                 </span>
                 <span className="t-label text-fg-2">{label}</span>
@@ -39,7 +39,7 @@ export function SectionHeader({ index, label, title, description, meta, titleId,
                     {(description || meta) && (
                         <div className="lg:pb-2">
                             {description && (
-                                <p className="text-[15px] leading-relaxed text-fg-2 lg:border-l lg:border-border lg:pl-6">
+                                <p className="text-15 leading-relaxed text-fg-2 lg:border-l lg:border-border lg:pl-6">
                                     {description}
                                 </p>
                             )}

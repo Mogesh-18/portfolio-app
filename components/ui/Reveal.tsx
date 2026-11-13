@@ -5,7 +5,7 @@ import { cn, delay as delayStyle } from "@/lib/utils";
 /*
  * One IntersectionObserver shared by every <Reveal> on the page.
  * When an element scrolls into view it gets `data-shown`, which triggers the
- * `.reveal` animation in globals.css, and is then unobserved (reveal once).
+ * `.reveal` animation in styles/components.css, and is then unobserved (reveal once).
  * Writing a data attribute (not React state) means no re-render per element.
  */
 let observer: IntersectionObserver | null = null;
@@ -13,7 +13,7 @@ let observer: IntersectionObserver | null = null;
 function getObserver() {
     observer ??= new IntersectionObserver(
         entries => {
-            // Reveal is live: disables the CSS no-JS failsafe (globals.css). Set in the
+            // Reveal is live: disables the CSS no-JS failsafe (styles/components.css). Set in the
             // same callback as data-shown so in-view items never flicker.
             document.documentElement.dataset.reveal = "";
             for (const entry of entries) {

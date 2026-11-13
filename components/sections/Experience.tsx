@@ -1,6 +1,8 @@
 import { Fragment } from "react";
 import { Briefcase, CalendarClock, MapPin, Users } from "lucide-react";
 import { Reveal } from "@/components/ui/Reveal";
+import { LiveDot } from "@/components/ui/LiveDot";
+import { Tag } from "@/components/ui/Tag";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Accent } from "@/components/ui/Accent";
 import { experiences } from "@/data/resume";
@@ -38,7 +40,7 @@ export function Experience() {
                             <li key={exp.id} className="grid lg:grid-cols-[340px_1fr] gap-8 lg:gap-16">
                                 {/* Role card — sticks while the highlights scroll past */}
                                 <Reveal className="lg:sticky lg:top-28 self-start">
-                                    <div className="relative overflow-hidden rounded-2xl border border-border bg-bg-card p-6" style={{ boxShadow: "var(--shadow-2)" }}>
+                                    <div className="relative overflow-hidden rounded-2xl border border-border bg-bg-card p-6 shadow-elev-2">
                                         <span aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-accent/10 blur-3xl" />
 
                                         <div className="relative flex items-center gap-3">
@@ -48,11 +50,8 @@ export function Experience() {
                                             <div className="min-w-0">
                                                 <p className="font-semibold tracking-tight text-fg leading-snug">{exp.company}</p>
                                                 {isCurrent && (
-                                                    <p className="mt-1 inline-flex items-center gap-1.5 t-label text-emerald-700 dark:text-emerald-400">
-                                                        <span className="relative flex h-1.5 w-1.5" aria-hidden>
-                                                            <span className="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                                                            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                                                        </span>
+                                                    <p className="mt-1 inline-flex items-center gap-1.5 t-label text-success">
+                                                        <LiveDot size="sm" />
                                                         Current role
                                                     </p>
                                                 )}
@@ -81,9 +80,7 @@ export function Experience() {
 
                                         <ul className="relative mt-5 flex flex-wrap gap-1.5" aria-label="Technologies">
                                             {exp.tags.map(tag => (
-                                                <li key={tag} className="px-2.5 py-1 text-xs font-medium rounded-md border border-border bg-bg-2 text-fg-2">
-                                                    {tag}
-                                                </li>
+                                                <Tag key={tag}>{tag}</Tag>
                                             ))}
                                         </ul>
                                     </div>
@@ -108,8 +105,8 @@ export function Experience() {
                                                     className="tl-dot absolute -left-10 sm:-left-12 top-5 h-[19px] w-[19px] rounded-full border-[4px] border-bg bg-v-violet ring-1 ring-border shadow-[0_0_0_5px_color-mix(in_oklch,var(--v-violet)_14%,transparent)]"
                                                 />
                                                 <div className="group rounded-xl border border-transparent p-4 sm:p-5 transition-colors duration-300 hover:border-border hover:bg-bg-card">
-                                                    <p className="flex gap-4 text-[15px] text-fg-2 leading-relaxed">
-                                                        <span aria-hidden className="font-mono text-xs pt-1 bg-[image:var(--grad-brand)] bg-clip-text text-transparent font-medium">{String(i + 1).padStart(2, "0")}</span>
+                                                    <p className="flex gap-4 text-15 text-fg-2 leading-relaxed">
+                                                        <span aria-hidden className="font-mono text-xs pt-1 bg-grad-brand bg-clip-text text-transparent font-medium">{String(i + 1).padStart(2, "0")}</span>
                                                         <span>{withMetrics(h)}</span>
                                                     </p>
                                                 </div>

@@ -1,32 +1,32 @@
 import type { ReactNode } from "react";
-import { ArrowUpRight, Briefcase, FileText, Handshake, Mail, Phone } from "lucide-react";
+import { ArrowUpRight, Mail, Phone } from "lucide-react";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Accent } from "@/components/ui/Accent";
-import { CopyEmail } from "@/components/ui/CopyEmail";
+import { CopyEmail } from "@/components/features/contact/CopyEmail";
 import { Magnetic } from "@/components/ui/Magnetic";
-import { ContactForm } from "@/components/ui/ContactForm";
+import { ContactForm } from "@/components/features/contact/ContactForm";
 import { LocalTime } from "@/components/ui/LocalTime";
-import { GitHubIcon, LinkedInIcon } from "@/components/ui/BrandIcons";
-import { contact } from "@/data/resume";
+import { SOCIAL_ICON } from "@/components/ui/BrandIcons";
+import { buttonVariants } from "@/components/ui/Button";
+import { ExternalLink } from "@/components/ui/ExternalLink";
+import { LiveDot } from "@/components/ui/LiveDot";
+import { socialLinks } from "@/lib/social";
+import { contact, openTo } from "@/data/resume";
+import { OPEN_TO_ICON } from "@/config/icons";
 import { cn } from "@/lib/utils";
 
 type Channel = { label: string; val: string; href: string; icon: ReactNode; ext?: boolean };
 
-const OPEN_TO = [
-    { label: "Full-time roles", icon: Briefcase },
-    { label: "Contract engagements", icon: FileText },
-    { label: "Technical consulting", icon: Handshake },
-];
-
 function ChannelCards({ channels }: { channels: Channel[] }) {
     return (
         <ul className="grid gap-3">
-            {channels.map(({ label, val, href, icon, ext }) => (
+            {channels.map(({ label, val, href, icon, ext }) => {
+                const A = ext ? ExternalLink : "a";
+                return (
                 <li key={label}>
-                    <a
+                    <A
                         href={href}
-                        {...(ext ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                         className="group flex items-center gap-4 rounded-xl border border-border bg-bg-2/60 p-4 transition-[border-color,background-color,translate] duration-300 ease-expo hover:-translate-y-0.5 hover:border-accent/40 hover:bg-bg-card"
                     >
                         <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-border bg-bg-card text-fg-2 transition-colors duration-300 group-hover:border-accent/30 group-hover:bg-accent-t group-hover:text-accent">
@@ -41,10 +41,10 @@ function ChannelCards({ channels }: { channels: Channel[] }) {
                             aria-hidden
                             className="shrink-0 text-fg-3 transition-all duration-300 ease-expo group-hover:text-accent group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                         />
-                        {ext && <span className="sr-only">(opens in a new tab)</span>}
-                    </a>
+                    </A>
                 </li>
-            ))}
+                );
+            })}
         </ul>
     );
 }
@@ -54,13 +54,10 @@ export function Contact() {
     const formEnabled = Boolean(process.env.RESEND_API_KEY);
 
     const channels: Channel[] = [
-        { label: "LinkedIn", val: contact.linkedinHandle, href: contact.linkedin, icon: <LinkedInIcon size={17} />, ext: true },
-        ...(contact.github
-            ? [{
-                label: "GitHub", val: contact.github.replace(/^https?:\/\/(www\.)?github\.com\//, ""),
-                href: contact.github, icon: <GitHubIcon size={17} />, ext: true,
-            }]
-            : []),
+        ...socialLinks(contact).map(({ id, label, href, handle }): Channel => {
+            const Icon = SOCIAL_ICON[id];
+            return { label, val: handle, href, icon: <Icon size={17} />, ext: true };
+        }),
         { label: "Phone", val: contact.phone, href: `tel:${contact.phone.replace(/\s/g, "")}`, icon: <Phone size={17} strokeWidth={1.75} /> },
     ];
 
@@ -77,7 +74,7 @@ export function Contact() {
                     description="Hiring, building something, or need a second pair of eyes on an architecture — I'd like to hear about it."
                 />
 
-                <Reveal className="relative overflow-hidden rounded-3xl border border-border bg-bg-card/60 backdrop-blur" style={{ boxShadow: "var(--shadow-3)" }}>
+                <Reveal className="relative overflow-hidden rounded-3xl border border-border bg-bg-card/60 backdrop-blur shadow-elev-3">
                     {/* Panel decoration: top hairline glow + masked dot grid */}
                     <span aria-hidden className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-v-violet/80 to-transparent" />
                     <div aria-hidden className="bg-dots pointer-events-none absolute inset-0 opacity-50" />
@@ -86,12 +83,15 @@ export function Contact() {
                         {/* Left: pitch + email */}
                         <div className="min-w-0 p-6 sm:p-10">
                             <ul className="flex flex-wrap gap-2">
-                                {OPEN_TO.map(({ label, icon: Icon }) => (
-                                    <li key={label} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-bg-2 px-3 py-1.5 text-xs font-medium text-fg-2">
+                                {openTo.map(({ kind, label }) => {
+                                    const Icon = OPEN_TO_ICON[kind];
+                                    return (
+                                    <li key={kind} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-bg-2 px-3 py-1.5 text-xs font-medium text-fg-2">
                                         <Icon size={13} aria-hidden className="text-accent" />
                                         {label}
                                     </li>
-                                ))}
+                                    );
+                                })}
                             </ul>
 
                             <p className="mt-6 text-base sm:text-lg text-fg-2 max-w-lg leading-relaxed">
@@ -113,7 +113,7 @@ export function Contact() {
                                 <Magnetic>
                                     <a
                                         href={`mailto:${contact.email}`}
-                                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[image:var(--grad-solid)] text-white font-semibold text-sm transition-[filter] duration-300 hover:brightness-110 shadow-[0_10px_30px_-10px_var(--v-violet)]"
+                                        className={buttonVariants()}
                                     >
                                         <Mail size={15} strokeWidth={2} aria-hidden />
                                         Email me
@@ -124,11 +124,8 @@ export function Contact() {
 
                             <div className="mt-10 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-border pt-6">
                                 <p className="inline-flex items-center gap-2">
-                                    <span className="relative flex h-2 w-2 shrink-0" aria-hidden>
-                                        <span className="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                                    </span>
-                                    <span className="t-label text-emerald-700 dark:text-emerald-400">{contact.availability}</span>
+                                    <LiveDot />
+                                    <span className="t-label text-success">{contact.availability}</span>
                                 </p>
                                 <p className="font-mono text-xs text-fg-3">
                                     {contact.locationShort} · <LocalTime timeZone={contact.timezone} label={contact.timezoneLabel} />

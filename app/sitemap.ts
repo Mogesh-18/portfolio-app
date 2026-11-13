@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { projects } from "@/data/resume";
-import { siteUrl } from "@/lib/site";
+import { siteUrl } from "@/config/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
     const now = new Date();

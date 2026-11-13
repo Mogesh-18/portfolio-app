@@ -8,13 +8,13 @@ The site runs on **Vercel**. Vercel detects Next.js automatically, so no `vercel
 
 ## One-time setup
 
-1. **Node.js version:** Project → Settings → Build & Deployment → **Node.js 22.x** (anything 20.9 or newer works).
+1. **Node.js version:** Vercel follows `engines.node` in `package.json` (`>=22`), which selects the newest supported major (24.x, matching `.nvmrc`). No setting is needed.
 2. **Custom domain** *(optional)*: add it under Project → Domains, then set `NEXT_PUBLIC_SITE_URL` (see below).
 3. **Analytics:** Project → **Analytics** → Enable, and Project → **Speed Insights** → Enable. The code is already in place. Nothing is collected until these are switched on.
 
 ## Environment variables
 
-Set these in Project → Settings → Environment Variables, for both **Production** and **Preview**.
+Set these in Project → Settings → Environment Variables, for both **Production** and **Preview**. For local development, copy [`.env.example`](../.env.example) to `.env.local`.
 
 | Variable | Required | Purpose |
 |---|---|---|
@@ -37,12 +37,14 @@ Set these in Project → Settings → Environment Variables, for both **Producti
 
 ## CI
 
-[`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs `npm ci`, lint, typecheck and build:
+[`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs `npm ci`, lint, typecheck, tests and build (reusing the `.next/cache` between runs), on Node from `.nvmrc`:
 - on pushes to `main`;
 - on every pull request;
 - on demand from the Actions tab.
 
 Superseded runs are cancelled automatically.
+
+**Dependabot** ([`.github/dependabot.yml`](../.github/dependabot.yml)) opens a weekly PR grouping npm minor and patch updates, separate PRs for major versions, and a monthly PR for GitHub Actions. CI checks each one, so merge once it's green and the preview looks right.
 
 ## Troubleshooting
 
@@ -53,4 +55,5 @@ Superseded runs are cancelled automatically.
 | Canonical / OG URLs point to `*.vercel.app` | Set `NEXT_PUBLIC_SITE_URL` and redeploy |
 | Social preview shows an old image | Platforms cache previews. Re-scrape with the LinkedIn Post Inspector or opengraph.xyz. |
 | Build fails on `npm ci` with ERESOLVE | A dependency's peer range doesn't allow React 19 yet. Check the error, then pin a compatible version. |
+| Something is blocked in the browser console ("Refused to load…") | The Content Security Policy in `next.config.mjs` doesn't allow that origin. Add it to the matching directive. The CSP only applies to production builds. |
 | Analytics dashboard is empty | Enable Analytics and Speed Insights in the Vercel project. Data shows up after real visits. |

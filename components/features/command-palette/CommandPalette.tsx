@@ -1,48 +1,23 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { track } from "@vercel/analytics";
-import {
-    ArrowUpDown, Check, Copy, CornerDownLeft, Download, FileText, FolderGit2, Hash, Mail, Moon, Search, Sun,
-} from "lucide-react";
-import { NAV_LINKS } from "@/config/nav";
-import { contact, projects } from "@/data/resume";
-import { switchTheme } from "@/lib/theme-switch";
+import { ArrowUpDown, CornerDownLeft, FileText, Search } from "lucide-react";
+import type { ClientData } from "@/data/client";
+import { switchTheme } from "@/components/features/theme/theme-switch";
 import { cn } from "@/lib/utils";
-import { GitHubIcon, LinkedInIcon } from "@/components/ui/BrandIcons";
+import { useMounted } from "@/hooks/useMounted";
+import { onOpenCommandPalette } from "./events";
+import { buildItems, GROUPS, type Item } from "./items";
+import { filterItems } from "./search";
 
-const OPEN_EVENT = "open-command-palette";
-
-/** Open the palette from anywhere (header button, mobile menu, …). */
-export function openCommandPalette() {
-    window.dispatchEvent(new Event(OPEN_EVENT));
-}
-
-type Group = "Navigate" | "Case studies" | "Actions" | "Elsewhere";
-type Action =
-    | { type: "go"; href: string }
-    | { type: "open"; url: string }
-    | { type: "copy-email" }
-    | { type: "email" }
-    | { type: "theme" }
-    | { type: "cv"; href: string };
-type Item = {
-    id: string;
-    group: Group;
-    label: string;
-    icon: ReactNode;
-    keywords?: string;
-    action: Action;
-};
-
-const GROUPS: Group[] = ["Navigate", "Case studies", "Actions", "Elsewhere"];
-
-const noop = () => () => {};
-/** false during SSR + hydration, true afterwards (avoids theme-dependent hydration mismatches) */
-const useMounted = () => useSyncExternalStore(noop, () => true, () => false);
-
-export function CommandPalette() {
+/**
+ * ⌘K / Ctrl K command palette: a <dialog> with the ARIA combobox/listbox pattern.
+ * Entries come from items.tsx, matching from search.ts; open it from anywhere
+ * with openCommandPalette() (events.ts).
+ */
+export function CommandPalette({ data }: { data: ClientData }) {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const listRef = useRef<HTMLUListElement>(null);
     const [query, setQuery] = useState("");
@@ -78,52 +53,18 @@ export function CommandPalette() {
             }
         };
         window.addEventListener("keydown", onKey);
-        window.addEventListener(OPEN_EVENT, open);
+        const offOpen = onOpenCommandPalette(open);
         return () => {
             window.removeEventListener("keydown", onKey);
-            window.removeEventListener(OPEN_EVENT, open);
+            offOpen();
             clearTimeout(closeTimer.current);
         };
     }, [open, close]);
 
     const isDark = mounted && resolvedTheme === "dark";
 
-    const items = useMemo<Item[]>(() => [
-        { id: "top", group: "Navigate", label: "Home", icon: <Hash size={16} />, keywords: "top hero start", action: { type: "go", href: "/" } },
-        ...NAV_LINKS.map((l): Item => ({
-            id: `nav-${l.id}`, group: "Navigate", label: l.label, icon: <Hash size={16} />, action: { type: "go", href: l.href },
-        })),
-        ...projects.map((p): Item => ({
-            id: `project-${p.id}`, group: "Case studies", label: p.title, icon: <FolderGit2 size={16} />,
-            keywords: p.techStack.join(" "), action: { type: "go", href: `/projects/${p.id}` },
-        })),
-        {
-            id: "copy-email", group: "Actions", label: copied ? "Copied to clipboard!" : "Copy email address",
-            icon: copied ? <Check size={16} /> : <Copy size={16} />, keywords: contact.email, action: { type: "copy-email" },
-        },
-        { id: "email", group: "Actions", label: "Send an email", icon: <Mail size={16} />, keywords: "contact hire mail", action: { type: "email" } },
-        {
-            id: "theme", group: "Actions", label: `Switch to ${isDark ? "light" : "dark"} mode`,
-            icon: isDark ? <Sun size={16} /> : <Moon size={16} />, keywords: "theme dark light appearance", action: { type: "theme" },
-        },
-        ...(contact.resumeUrl
-            ? [{ id: "cv", group: "Actions", label: "Download CV", icon: <Download size={16} />, keywords: "resume pdf", action: { type: "cv", href: contact.resumeUrl } } satisfies Item]
-            : []),
-        { id: "linkedin", group: "Elsewhere", label: "LinkedIn", icon: <LinkedInIcon size={15} />, action: { type: "open", url: contact.linkedin } },
-        ...(contact.github
-            ? [{ id: "github", group: "Elsewhere", label: "GitHub", icon: <GitHubIcon size={15} />, keywords: "code source", action: { type: "open", url: contact.github } } satisfies Item]
-            : []),
-    ], [isDark, copied]);
-
-    /* Every query word must appear in the label, keywords or group */
-    const results = useMemo(() => {
-        const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-        if (!words.length) return items;
-        return items.filter(i => {
-            const hay = `${i.label} ${i.keywords ?? ""} ${i.group}`.toLowerCase();
-            return words.every(w => hay.includes(w));
-        });
-    }, [items, query]);
+    const items = useMemo(() => buildItems(data, { isDark, copied }), [data, isDark, copied]);
+    const results = useMemo(() => filterItems(items, query), [items, query]);
 
     const activeIndex = Math.min(active, Math.max(0, results.length - 1));
     const activeItem = results[activeIndex];
@@ -148,7 +89,7 @@ export function CommandPalette() {
                 return;
             case "email":
                 close();
-                window.location.href = `mailto:${contact.email}`;
+                window.location.href = `mailto:${data.contact.email}`;
                 return;
             case "theme":
                 // Close instantly (no fade-out) so the view-transition snapshot doesn't include the palette
@@ -167,13 +108,13 @@ export function CommandPalette() {
             }
             case "copy-email":
                 // Stay open briefly to show "Copied"
-                navigator.clipboard.writeText(contact.email)
+                navigator.clipboard.writeText(data.contact.email)
                     .then(() => {
                         setCopied(true);
                         track("copy_email", { source: "command_palette" });
                         closeTimer.current = setTimeout(close, 700);
                     })
-                    .catch(() => { window.location.href = `mailto:${contact.email}`; });
+                    .catch(() => { window.location.href = `mailto:${data.contact.email}`; });
                 return;
         }
     };
@@ -209,7 +150,7 @@ export function CommandPalette() {
                         aria-controls="cmdk-list"
                         aria-activedescendant={activeItem ? `cmdk-${activeItem.id}` : undefined}
                         aria-autocomplete="list"
-                        className="h-14 w-full bg-transparent text-[15px] text-fg placeholder:text-fg-3 outline-none focus-visible:outline-none"
+                        className="h-14 w-full bg-transparent text-15 text-fg placeholder:text-fg-3 outline-none focus-visible:outline-none"
                     />
                     <kbd className="hidden sm:inline-flex t-label rounded-md border border-border px-1.5 py-0.5 text-fg-3">Esc</kbd>
                 </div>
@@ -265,7 +206,7 @@ export function CommandPalette() {
                 <div className="hidden sm:flex items-center gap-4 border-t border-border px-4 py-2.5 text-xs text-fg-3">
                     <span className="inline-flex items-center gap-1.5"><ArrowUpDown size={12} aria-hidden /> Navigate</span>
                     <span className="inline-flex items-center gap-1.5"><CornerDownLeft size={12} aria-hidden /> Open</span>
-                    <span className="ml-auto inline-flex items-center gap-1.5"><FileText size={12} aria-hidden /> {contact.name}</span>
+                    <span className="ml-auto inline-flex items-center gap-1.5"><FileText size={12} aria-hidden /> {data.contact.name}</span>
                 </div>
             </div>
         </dialog>

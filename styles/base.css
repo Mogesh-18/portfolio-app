@@ -1,0 +1,82 @@
+/* ─── Base ──────────────────────────────────────────────────────── */
+@layer base {
+
+    /* Tailwind v4 defaults border colour to currentColor — keep the v3 behaviour */
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--border);
+    }
+
+    /* Clip horizontal overflow on BOTH html and body (body alone is ignored by iOS Safari).
+       `clip`, not `hidden`: `hidden` turns them into scroll containers, which breaks
+       `position: sticky` (e.g. the Experience role card). */
+    html {
+        scroll-behavior: smooth;
+        /* keep anchored headings clear of the fixed header */
+        scroll-padding-top: 5rem;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        overflow-x: clip;
+    }
+
+    body {
+        font-family: var(--font-sans);
+        background: var(--bg);
+        color: var(--fg);
+        line-height: 1.65;
+        overflow-x: clip;
+    }
+
+    /* Film grain — a fixed, non-interactive noise layer for texture */
+    body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        pointer-events: none;
+        opacity: .035;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .dark body::after {
+        opacity: .05;
+    }
+
+    button:not(:disabled),
+    [role="button"]:not(:disabled) {
+        cursor: pointer;
+    }
+
+    ::selection {
+        background: var(--accent-solid);
+        color: #fff;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+        border-radius: 4px;
+    }
+
+    /* Programmatic focus targets (e.g. <main> after the skip link) shouldn't show an outline */
+    [tabindex="-1"]:focus {
+        outline: none;
+    }
+
+    ::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--border-2);
+        border-radius: 99px;
+    }
+}

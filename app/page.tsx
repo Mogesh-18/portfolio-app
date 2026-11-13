@@ -4,27 +4,30 @@ import { Experience } from "@/components/sections/Experience";
 import { Projects } from "@/components/sections/Projects";
 import { Skills } from "@/components/sections/Skills";
 import { Contact } from "@/components/sections/Contact";
-import { contact, experiences, skillGroups, summary } from "@/data/resume";
-import { siteUrl } from "@/lib/site";
+import { contact, currentRole, skillGroups, summary, type SkillCategory } from "@/data/resume";
+import { siteUrl } from "@/config/site";
+
+/** Skill categories listed as `knowsAbout` in the JSON-LD */
+const KNOWS_ABOUT: SkillCategory[] = ["Backend", "Frontend", "Database"];
 
 const personJsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
     name: contact.name,
     url: siteUrl,
-    jobTitle: experiences[0]?.role ?? contact.title,
+    jobTitle: currentRole?.role ?? contact.title,
     description: summary,
     email: `mailto:${contact.email}`,
-    worksFor: experiences[0] && { "@type": "Organization", name: experiences[0].companyFull },
+    worksFor: currentRole && { "@type": "Organization", name: currentRole.companyFull },
     address: {
         "@type": "PostalAddress",
-        addressLocality: "Tiruvannamalai",
-        addressRegion: "Tamil Nadu",
-        addressCountry: "IN",
+        addressLocality: contact.address.locality,
+        addressRegion: contact.address.region,
+        addressCountry: contact.address.country,
     },
     sameAs: [contact.linkedin, contact.github].filter(Boolean),
     knowsAbout: skillGroups
-        .filter(g => ["Backend", "Frontend", "Database"].includes(g.category))
+        .filter(g => KNOWS_ABOUT.includes(g.category))
         .flatMap(g => g.skills),
 };
 

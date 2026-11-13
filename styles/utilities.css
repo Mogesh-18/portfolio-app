@@ -1,0 +1,70 @@
+/* Custom Tailwind utilities (@utility), so variants such as lg: and dark: work.
+   Register new ones with tailwind-merge in lib/utils.ts. */
+
+/* Darkened --tone/--tone-2 gradient for fills that carry white text or icons.
+   Mixing in 35% black keeps every vibrant tone at ≥ 4.5:1 against white in both themes. */
+@utility bg-tone-solid {
+    background-image: linear-gradient(135deg,
+            color-mix(in oklch, var(--tone) 65%, black),
+            color-mix(in oklch, var(--tone-2) 65%, black));
+}
+
+/* ─── Type scale — Geist; display weights at 600 for a lighter, modern feel.
+   Declared with @utility so variants work (lg:t-h1, print:t-label, …). ── */
+@utility t-display {
+    font-size: clamp(3rem, 10vw, 8rem);
+    font-weight: 600;
+    line-height: 0.95;
+    letter-spacing: -0.05em;
+}
+
+@utility t-h1 {
+    font-size: clamp(1.875rem, 4.5vw, 3.75rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+}
+
+@utility t-h2 {
+    font-size: clamp(1.2rem, 2.5vw, 2rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+}
+
+/* Eyebrows, metadata, labels — Geist Mono */
+@utility t-label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+/* Decorative --tone → --tone-2 gradient (diagonal, and horizontal for bars/rails) */
+@utility bg-tone-grad {
+    background-image: linear-gradient(135deg, var(--tone), var(--tone-2));
+}
+
+@utility bg-tone-grad-x {
+    background-image: linear-gradient(90deg, var(--tone), var(--tone-2));
+}
+
+/* Brand gradients as utilities */
+@utility bg-grad-brand {
+    background-image: var(--grad-brand);
+}
+
+@utility bg-grad-solid {
+    background-image: var(--grad-solid);
+}
+
+/* Project colours: --p is the project's hex colour (projectTone() in ProjectCover.tsx).
+   In dark mode it is lifted towards white so it reads like the vibrant tokens do. */
+@utility tone-project {
+    --tone: var(--p);
+
+    &:where(.dark, .dark *) {
+        --tone: color-mix(in oklch, var(--p) 72%, white);
+    }
+}

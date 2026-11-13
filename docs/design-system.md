@@ -1,6 +1,17 @@
 # Design system
 
-All tokens are CSS variables in [`app/globals.css`](../app/globals.css):
+All tokens are CSS variables in [`styles/tokens.css`](../styles/tokens.css). `app/globals.css` imports the stylesheet parts:
+
+| File | Contents |
+|---|---|
+| `styles/tokens.css` | Colour, elevation and gradient tokens for both themes, plus the `@theme inline` mapping |
+| `styles/base.css` | Element defaults, focus ring, film grain, scrollbar |
+| `styles/components.css` | `.wrap`, `.section-y`, reveal, marquee, spotlight, timeline, mobile menu, palette |
+| `styles/utilities.css` | Custom `@utility` classes (`t-*`, `bg-tone-*`, `bg-grad-*`, `tone-project`) |
+| `styles/motion.css` | Keyframes, scroll-driven effects, theme view transition, reduced motion |
+| `styles/print.css` | The resume-style print layout |
+
+In the tokens file:
 - `:root` holds the light-theme values.
 - `.dark` overrides them for dark mode.
 - `@theme inline` exposes them to Tailwind utilities.
@@ -14,10 +25,14 @@ All tokens are CSS variables in [`app/globals.css`](../app/globals.css):
 | `--bg`, `--bg-2`, `--bg-3` | `bg-bg`, `bg-bg-2`, `bg-bg-3` | Page and subtle surfaces |
 | `--bg-card` | `bg-bg-card` | Cards |
 | `--fg`, `--fg-2`, `--fg-3` | `text-fg`, `text-fg-2`, `text-fg-3` | Primary, secondary and tertiary text |
-| `--accent`, `--accent-2`, `--accent-tint` | `text-accent`, `bg-accent-t` | Indigo accent |
-| `--accent-solid` | `bg-accent-solid` | Solid fills carrying white text |
+| `--accent`, `--accent-tint` | `text-accent`, `bg-accent-t` | Indigo accent |
+| `--accent-solid` | `bg-accent-solid` | Solid fill carrying white text (skip link, text selection) |
+| `--success`, `--danger` | `text-success`, `text-danger`, `border-danger/70` | Status *text* (availability, form errors), AA in both themes. Status dots and fills use `bg-v-emerald`. |
 | `--border`, `--border-2` | `border-border`, `border-border-2` | Translucent hairlines |
-| `--shadow-1` … `--shadow-4` | `style={{ boxShadow: "var(--shadow-2)" }}` | Restrained elevation; in dark mode, an inset top highlight replaces drop shadows |
+| `--shadow-1` … `--shadow-3` | `shadow-elev-1` … `shadow-elev-3` | Restrained elevation for cards; in dark mode, an inset top highlight replaces drop shadows |
+| `--shadow-float` | `shadow-float` | Floating chrome: the scrolled header, the scroll-to-top button |
+
+Always use the shadow utilities, not inline `style={{ boxShadow }}`. Inline styles can't be overridden by `hover:` classes.
 
 **Every text token is checked against every surface for WCAG AA (≥ 4.5:1) in both themes.** Opacity modifiers work on all tokens, for example `bg-accent/10` and `border-border/60`.
 
@@ -25,10 +40,10 @@ All tokens are CSS variables in [`app/globals.css`](../app/globals.css):
 
 `--v-indigo`, `--v-violet`, `--v-fuchsia`, `--v-pink`, `--v-orange`, `--v-amber`, `--v-emerald`, `--v-cyan`, `--v-blue` (utilities: `bg-v-violet/20`, `text-v-emerald`, …). Each has a brighter variant for dark mode.
 
-| Gradient | Use |
-|---|---|
-| `--grad-brand` (indigo → violet → pink) | Display text, the timeline rail, glows |
-| `--grad-solid` | Primary buttons and badges with white text; every stop is ≥ 4.6:1 against white |
+| Gradient | Utility | Use |
+|---|---|---|
+| `--grad-brand` (indigo → violet → pink) | `bg-grad-brand` | Display text, the timeline rail, glows |
+| `--grad-solid` | `bg-grad-solid` | Primary buttons and badges with white text; every stop is ≥ 4.6:1 against white |
 
 **Rule:** vibrant colours are for icons, glows, borders, gradients and *large* display text. Small body text always stays on the `fg` tokens.
 
@@ -37,11 +52,21 @@ All tokens are CSS variables in [`app/globals.css`](../app/globals.css):
 Cards set two CSS variables, `--tone` and `--tone-2`, and style themselves from them:
 
 ```tsx
-<div style={{ "--tone": "var(--v-cyan)", "--tone-2": "var(--v-blue)" } as CSSProperties}
-     className="border-(--tone)/40 bg-(--tone)/10">
-  <span className="bg-[linear-gradient(135deg,var(--tone),var(--tone-2))]" />
+import { tone } from "@/lib/tone";
+
+<div style={tone("cyan", "blue")} className="border-(--tone)/40 bg-(--tone)/10">
+  <span className="bg-tone-grad" />          {/* decorative diagonal gradient */}
+  <ToneIcon icon={Plug} size="lg" />         {/* tinted icon chip */}
 </div>
 ```
+
+| Utility | Use |
+|---|---|
+| `bg-tone-grad`, `bg-tone-grad-x` | Decorative tone gradient (diagonal / horizontal for bars and edges) |
+| `bg-tone-solid` | Darkened tone gradient for fills that carry white text or icons |
+| `tone-project` | On project cards: turns the project's hex colour (`--p`, from `projectTone(p)`) into `--tone`, lifted towards white in dark mode |
+
+Custom properties in `style` are typed via `types/css.d.ts`, so no `as CSSProperties` cast is needed.
 
 When a tone fill carries **white text or icons**, use `bg-tone-solid` instead of the raw gradient. It darkens both stops (35% black) so white stays at 4.5:1 or above. The raw gradient is only for decoration.
 
@@ -49,8 +74,8 @@ The cursor spotlight (`.spotlight`) picks up `--tone` automatically. Project car
 
 ## Theme
 
-- **Light by default for every first-time visitor.** The OS dark/light preference is ignored (`defaultTheme="light"`, `enableSystem={false}` in `providers/ThemeProvider.tsx`).
-- The toggle (header, mobile menu, ⌘K) switches themes with a circular **View Transitions** reveal (`lib/theme-switch.ts`), and the choice is saved in `localStorage`.
+- **Light by default for every first-time visitor.** The OS dark/light preference is ignored (`defaultTheme="light"`, `enableSystem={false}` in `components/features/theme/ThemeProvider.tsx`).
+- The toggle (header, mobile menu, ⌘K) switches themes with a circular **View Transitions** reveal (`components/features/theme/theme-switch.ts`), and the choice is saved in `localStorage`.
 
 ## Typography
 
@@ -59,7 +84,10 @@ The cursor spotlight (`.spotlight`) picks up `--tone` automatically. Project car
 | Geist Sans (`font-sans`) | All content. Headings use weight 600 with tight tracking. |
 | Geist Mono (`font-mono`, `.t-label`) | Eyebrows, labels, metadata, numbers |
 | Instrument Serif italic (`font-serif`, via `<Accent>`) | The highlighted phrase in headings, in the brand gradient |
-| `.t-display`, `.t-h1`, `.t-h2` | Fluid display, section and card heading sizes |
+| `t-display`, `t-h1`, `t-h2`, `t-label` | Fluid display, section and card heading sizes, and mono labels. They are Tailwind `@utility` classes, so variants work (`lg:t-h1`). |
+| `text-2xs`, `text-13`, `text-15` | 11, 13 and 15px steps between Tailwind's sizes. Use these instead of `text-[13px]`. |
+
+New custom utilities must also be registered in `lib/utils.ts` (tailwind-merge config). Otherwise `cn()` may drop them, for example reading `text-2xs` as a colour.
 
 ## Layout
 
@@ -71,6 +99,13 @@ The cursor spotlight (`.spotlight`) picks up `--tone` automatically. Project car
 
 | Component | Type | Purpose |
 |---|---|---|
+| `ButtonLink`, `Button`, `buttonVariants()` | Server | The one button style: `primary` (brand gradient), `secondary` (bordered) or `ghost`, in sizes `sm` / `md` / `lg`. All are pill-shaped. `buttonVariants()` styles other elements, such as `CvLink`. |
+| `iconButtonVariants()` | Server | Round icon-only control, 40px (`md`) or 44px (`lg`) |
+| `ExternalLink` | Server | `target="_blank"` link that tells screen readers it opens a new tab |
+| `Tag` | Server | Chip for skills and tech stacks: `neutral`, `accent` or `mono` |
+| `ToneIcon` | Server | Icon chip tinted by the nearest `--tone` |
+| `LiveDot` | Server | Pulsing green "available / current" dot |
+| `socialLinks()` (`lib/social.ts`) + `SOCIAL_ICON` | — | LinkedIn and GitHub links from the contact data, with handles and icons |
 | `SectionHeader` | Server | Pill eyebrow (`01 · About`), h2, supporting copy and meta |
 | `Accent` | Server | Gradient serif-italic heading phrase |
 | `Reveal` | Client | Fades and lifts children in on scroll. One shared IntersectionObserver for the whole page; `delay` staggers items. |
@@ -81,7 +116,8 @@ The cursor spotlight (`.spotlight`) picks up `--tone` automatically. Project car
 | `CopyEmail`, `CvLink` | Client | Copy-to-clipboard and CV download, both with analytics events |
 | `CommandPalette` | Client | ⌘K / Ctrl K dialog; open it from anywhere with `openCommandPalette()` |
 | `ScrollTop` | Client | Floating back-to-top button with a scroll-progress ring |
-| `ProjectCover` + `covers.tsx` | Server | Mesh-gradient frame and per-project illustration |
+| `ProjectCover` + `covers/` | Server | Mesh-gradient frame and per-project illustration (one file per cover, with shared primitives) |
+| `FeaturedCard`, `ProjectCard` | Server | Project cards on the home page (`components/projects/ProjectCard.tsx`) |
 
 ## Motion
 

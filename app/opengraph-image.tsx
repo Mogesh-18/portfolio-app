@@ -1,8 +1,8 @@
 import { ImageResponse } from "next/og";
-import { contact, primaryStack, yearsOfExperience } from "@/data/resume";
+import { contact, headline, primaryStack, yearsOfExperience } from "@/data/resume";
 import { geistFonts } from "@/lib/og-fonts";
 
-export const alt = `${contact.name} — ${contact.title} & Technical Lead`;
+export const alt = `${contact.name} — ${headline}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 /* The image shows years of experience: regenerate daily like the pages */
@@ -38,7 +38,7 @@ export default async function OpengraphImage() {
                         {contact.lastName}
                     </div>
                     <div style={{ marginTop: 28, fontSize: 38, fontWeight: 400, color: "#D4D6DE" }}>
-                        {`${contact.title} & Technical Lead · ${yearsOfExperience}+ years`}
+                        {`${headline} · ${yearsOfExperience}+ years`}
                     </div>
                 </div>
 

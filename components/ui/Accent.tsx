@@ -10,7 +10,7 @@ export function Accent({ children, className }: { children: ReactNode; className
         <span
             className={cn(
                 "font-serif italic font-normal tracking-[-0.01em] text-[1.08em] leading-none",
-                "bg-[image:var(--grad-brand)] bg-clip-text text-transparent",
+                "bg-grad-brand bg-clip-text text-transparent",
                 // room for the italic overhang so the last glyph isn't clipped by bg-clip
                 "pr-[0.06em] [box-decoration-break:clone]",
                 "print:bg-none print:text-fg",

@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 /**
  * Tracks the pointer over a group of `.spotlight` cards and writes the cursor
  * position (relative to each card) into --mx / --my, which drive the gradient
- * border + glow in globals.css. Neighbouring cards light up at their edges too.
+ * border + glow in styles/components.css. Neighbouring cards light up at their edges too.
  */
 export function SpotlightGroup({ children, className }: { children: ReactNode; className?: string }) {
     const ref = useCallback((el: HTMLDivElement | null) => {

@@ -1,0 +1,216 @@
+/* Layout and component classes. Utilities can still override these. */
+
+@layer components {
+
+    /* Layout */
+    /* Wider canvas: 1360px max with modest gutters (≈1280px of content on desktop) */
+    .wrap {
+        width: 100%;
+        max-width: 1360px;
+        margin: 0 auto;
+        padding-inline: clamp(1rem, 4vw, 2.5rem);
+    }
+
+    /* Vertical rhythm between sections: 40px (mobile) → 72px (desktop) per side */
+    .section-y {
+        padding-block: clamp(2.5rem, 5vw, 4.5rem);
+    }
+
+    /* Hero entrance — pure CSS so the hero paints without waiting for JS.
+       Stagger with style={delay(ms)} (lib/utils.ts). */
+    .enter {
+        animation: enter .7s var(--ease-expo) both;
+        animation-delay: var(--d, 0ms);
+    }
+
+    /* Scroll reveal — driven by <Reveal> (components/ui/Reveal.tsx), which sets
+       data-shown once the element enters the viewport. Only hidden when JS runs
+       (html.js is set by an inline script in app/layout.tsx). Uses `animation`
+       rather than `transition` so hover transitions on the same element work. */
+    .js .reveal:not([data-shown]) {
+        opacity: 0;
+    }
+
+    /* Failsafe: if the Reveal script never runs (blocked or failed JS), show
+       everything after 3s. <Reveal> sets html[data-reveal] once it is live. */
+    .js:not([data-reveal]) .reveal:not([data-shown]) {
+        /* `reveal` only defines `from`, so the end state is the element's own
+           opacity — make that 1 here (the delay still holds it at opacity 0). */
+        opacity: 1;
+        animation: reveal .65s var(--ease-expo) 3s both;
+    }
+
+    .js .reveal[data-shown] {
+        animation: reveal .65s var(--ease-expo) both;
+        animation-delay: var(--d, 0ms);
+    }
+
+
+    /* Marquee */
+    .marquee-track {
+        animation: marquee 35s linear infinite;
+        display: flex;
+        width: max-content;
+    }
+
+    .marquee:hover .marquee-track,
+    .marquee:focus-within .marquee-track {
+        animation-play-state: paused;
+    }
+
+    /* Fade content out at the left/right edges (marquee) */
+    .edge-mask {
+        mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+    }
+
+    /* Dot grid backdrop, faded out towards the edges */
+    .bg-dots {
+        background-image: radial-gradient(var(--border-2) 1px, transparent 1px);
+        background-size: 22px 22px;
+        mask-image: radial-gradient(ellipse 65% 60% at 70% 35%, #000 20%, transparent 75%);
+    }
+
+    /* Line-mask reveal: each line slides up from behind its own clip box.
+       Transform-only, so the text is never transparent (good for LCP). */
+    .line-mask {
+        display: block;
+        overflow: hidden;
+        /* room for descenders (g, p) without clipping */
+        padding-bottom: .12em;
+        margin-bottom: -.12em;
+    }
+
+    .line-mask>span {
+        display: block;
+        animation: line-up .9s var(--ease-expo) both;
+        animation-delay: var(--d, 0ms);
+    }
+
+    /* Cursor spotlight border + glow. Position comes from --mx/--my set by
+       <SpotlightGroup> (components/ui/Spotlight.tsx). */
+    .spotlight {
+        position: relative;
+        isolation: isolate;
+    }
+
+    .spotlight::before,
+    .spotlight::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity .3s ease;
+    }
+
+    /* 1px gradient ring that follows the cursor */
+    .spotlight::before {
+        padding: 1px;
+        background: radial-gradient(320px circle at var(--mx, -999px) var(--my, -999px), var(--tone, var(--accent)), transparent 60%);
+        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        mask-composite: exclude;
+        -webkit-mask-composite: xor;
+    }
+
+    /* soft inner glow */
+    .spotlight::after {
+        z-index: -1;
+        background: radial-gradient(420px circle at var(--mx, -999px) var(--my, -999px), color-mix(in oklch, var(--tone, var(--accent)) 10%, transparent), transparent 60%);
+    }
+
+    .spotlight-group:hover .spotlight::before,
+    .spotlight-group:hover .spotlight::after {
+        opacity: 1;
+    }
+
+    /* Timeline (Experience): the container is a named view timeline; the rail
+       fill and the glowing head both follow it as the list scrolls through. */
+    .timeline {
+        view-timeline: --timeline block;
+    }
+
+    .rail-fill {
+        transform-origin: top;
+    }
+
+    .rail-head {
+        display: none;
+    }
+
+    /* Full-screen mobile menu: circular reveal from the menu button, staggered links */
+    /* Origin = centre of the header's menu button (wrap gutter + pill padding + half the button) */
+    .menu-panel {
+        clip-path: circle(0% at calc(100% - 2.75rem) 2.5rem);
+        transition: clip-path .6s var(--ease-expo), visibility 0s linear .6s;
+        visibility: hidden;
+    }
+
+    .menu-panel[data-open="true"] {
+        clip-path: circle(150% at calc(100% - 2.75rem) 2.5rem);
+        transition: clip-path .7s var(--ease-expo), visibility 0s;
+        visibility: visible;
+    }
+
+    .menu-item {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity .3s ease, transform .3s var(--ease-expo);
+    }
+
+    .menu-panel[data-open="true"] .menu-item {
+        opacity: 1;
+        transform: none;
+        transition: opacity .6s var(--ease-expo), transform .7s var(--ease-expo);
+        transition-delay: calc(var(--i, 0) * 45ms + 180ms);
+    }
+
+    /* Command palette (<dialog>): fade + scale in, blurred backdrop */
+    .cmdk {
+        opacity: 0;
+        transform: translateY(-8px) scale(.98);
+        transition: opacity .2s ease, transform .25s var(--ease-expo), overlay .25s allow-discrete, display .25s allow-discrete;
+    }
+
+    .cmdk[open] {
+        opacity: 1;
+        transform: none;
+    }
+
+    /* Closed for a theme switch: skip the fade so the view transition doesn't capture it */
+    .cmdk[data-instant],
+    .cmdk[data-instant]::backdrop {
+        transition: none;
+    }
+
+    @starting-style {
+        .cmdk[open] {
+            opacity: 0;
+            transform: translateY(-8px) scale(.98);
+        }
+    }
+
+    .cmdk::backdrop {
+        background: oklch(0 0 0 / 0);
+        backdrop-filter: blur(0);
+        transition: background-color .25s ease, backdrop-filter .25s ease, overlay .25s allow-discrete, display .25s allow-discrete;
+    }
+
+    .cmdk[open]::backdrop {
+        background: oklch(0 0 0 / .45);
+        backdrop-filter: blur(6px);
+    }
+
+    @starting-style {
+        .cmdk[open]::backdrop {
+            background: oklch(0 0 0 / 0);
+            backdrop-filter: blur(0);
+        }
+    }
+
+    /* Thin reading-progress bar under the header */
+    .scroll-progress {
+        display: none;
+        transform-origin: 0 50%;
+    }
+}

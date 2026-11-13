@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { track } from "@vercel/analytics";
+import { buttonVariants } from "@/components/ui/Button";
+import { iconButtonVariants } from "@/components/ui/IconButton";
 import { cn } from "@/lib/utils";
 
 /** Copies the email address to the clipboard and confirms it inline (announced to screen readers). */
@@ -38,11 +40,8 @@ export function CopyEmail({ email, source, className, compact = false }: {
             onClick={copy}
             aria-label={compact ? label : undefined}
             className={cn(
-                "inline-flex items-center justify-center gap-2 border font-semibold text-sm transition-colors duration-200",
-                compact ? "h-11 w-11 rounded-full" : "px-5 py-2.5 rounded-xl",
-                copied
-                    ? "border-emerald-500/40 text-emerald-700 dark:text-emerald-400 bg-emerald-500/10"
-                    : "border-border bg-bg-card text-fg-2 hover:text-accent hover:border-accent",
+                compact ? iconButtonVariants() : buttonVariants({ variant: "secondary", className: "text-fg-2" }),
+                copied && "border-v-emerald/40 bg-v-emerald/10 text-success hover:border-v-emerald/40 hover:text-success",
                 className
             )}
         >

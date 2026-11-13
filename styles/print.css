@@ -1,0 +1,85 @@
+/* ─── Print — the home page prints as a clean, light, resume-style document ── */
+@media print {
+    @page {
+        margin: 14mm 12mm;
+    }
+
+    /* Always print the light palette, whatever theme is active */
+    :root,
+    .dark {
+        --bg: #fff;
+        --bg-2: #fff;
+        --bg-3: #f3f4f6;
+        --bg-card: #fff;
+        --fg: #111;
+        --fg-2: #333;
+        --fg-3: #555;
+        --accent: #3730a3;
+        --accent-tint: #fff;
+        --border: #d4d4d8;
+        --border-2: #a1a1aa;
+        --shadow-1: none;
+        --shadow-2: none;
+        --shadow-3: none;
+        --shadow-float: none;
+        color-scheme: light;
+    }
+
+    html {
+        font-size: 12px;
+    }
+
+    .reveal,
+    .enter,
+    .line-mask>span {
+        opacity: 1 !important;
+        transform: none !important;
+        animation: none !important;
+    }
+
+    /* Chrome, decoration and interactive-only UI */
+    body::after,
+    .scroll-progress,
+    .rail-head,
+    .bg-dots,
+    .marquee,
+    [data-print="hide"] {
+        display: none !important;
+    }
+
+    .section-y {
+        padding-block: 1.25rem;
+    }
+
+    #home {
+        min-height: 0 !important;
+    }
+
+    .t-display {
+        font-size: 2.75rem;
+    }
+
+    .t-h1 {
+        font-size: 1.6rem;
+    }
+
+    /* Keep cards and timeline items whole */
+    article,
+    li,
+    .spotlight {
+        break-inside: avoid;
+    }
+
+    h2,
+    h3 {
+        break-after: avoid;
+    }
+
+    /* Show where external links go */
+    a[href^="http"]::after {
+        content: " (" attr(href) ")";
+        font-size: .8em;
+        color: var(--fg-3);
+        word-break: break-all;
+    }
+}

@@ -38,7 +38,7 @@ export function ScrollTop() {
     const toTop = (e: MouseEvent<HTMLButtonElement>) => {
         window.scrollTo({ top: 0 }); // smooth via CSS scroll-behavior (instant with reduced motion)
         // Keyboard users: move focus to the top of the page, since this button is about to hide
-        if (e.detail === 0) document.querySelector<HTMLElement>('header a[href="/"]')?.focus({ preventScroll: true });
+        if (e.detail === 0) document.getElementById("main")?.focus({ preventScroll: true });
     };
 
     return (
@@ -52,7 +52,7 @@ export function ScrollTop() {
             className={
                 "group fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 grid h-12 w-12 place-items-center rounded-full " +
                 "border border-border bg-bg-card/80 text-fg backdrop-blur-xl " +
-                "shadow-[0_10px_30px_-10px_oklch(0_0_0/0.45)] " +
+                "shadow-float " +
                 "opacity-0 translate-y-4 scale-90 pointer-events-none " +
                 "transition-[opacity,translate,scale,border-color,color] duration-500 ease-expo " +
                 "data-[show=true]:opacity-100 data-[show=true]:translate-y-0 data-[show=true]:scale-100 data-[show=true]:pointer-events-auto " +

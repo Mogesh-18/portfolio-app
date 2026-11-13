@@ -1,20 +1,18 @@
 "use client";
 import { useTheme } from "next-themes";
-import { useEffect, useState, type MouseEvent } from "react";
+import type { MouseEvent } from "react";
 import { Sun, Moon } from "lucide-react";
+import { iconButtonVariants } from "@/components/ui/IconButton";
+import { useMounted } from "@/hooks/useMounted";
+import { switchTheme } from "@/components/features/theme/theme-switch";
 import { cn } from "@/lib/utils";
-import { switchTheme } from "@/lib/theme-switch";
 
 export function ThemeToggle({ className }: { className?: string }) {
     const { resolvedTheme, setTheme } = useTheme();
-    const [mounted, setMounted] = useState(false);
+    // The theme is only known in the browser: render a placeholder until then
+    const mounted = useMounted();
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- standard next-themes hydration guard
-    useEffect(() => setMounted(true), []);
-
-    if (!mounted) return (
-        <div aria-hidden className={cn("w-10 h-10 rounded-full border border-border", className)} />
-    );
+    if (!mounted) return <div aria-hidden className={iconButtonVariants({ size: "md", className })} />;
 
     const isDark = resolvedTheme === "dark";
 
@@ -32,13 +30,7 @@ export function ThemeToggle({ className }: { className?: string }) {
             type="button"
             onClick={toggle}
             aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
-            className={cn(
-                "relative w-10 h-10 rounded-full border border-border",
-                "flex items-center justify-center overflow-hidden",
-                "text-fg-2 hover:text-accent hover:border-accent",
-                "transition-colors duration-200 active:scale-90",
-                className
-            )}
+            className={iconButtonVariants({ size: "md", className: cn("bg-transparent backdrop-blur-none", className) })}
         >
             {isDark
                 ? <Sun size={15} strokeWidth={2} aria-hidden />

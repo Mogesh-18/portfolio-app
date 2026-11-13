@@ -1,14 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
-import { ThemeProvider } from "@/providers/ThemeProvider";
+import { ThemeProvider } from "@/components/features/theme/ThemeProvider";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { CommandPalette } from "@/components/ui/CommandPalette";
+import { CommandPalette } from "@/components/features/command-palette/CommandPalette";
 import { ScrollTop } from "@/components/ui/ScrollTop";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { contact } from "@/data/resume";
-import { siteUrl, siteTitle, siteDescription } from "@/lib/site";
+import { siteUrl, siteTitle, siteDescription } from "@/config/site";
+import { clientData } from "@/data/client";
 import "@/app/globals.css";
 
 const sans = Geist({
@@ -47,7 +48,7 @@ export const metadata: Metadata = {
     authors: [{ name: contact.name, url: siteUrl }],
     creator: contact.name,
     keywords: [
-        "Full Stack Developer", "Technical Lead", "Laravel Developer", "React JS Developer",
+        contact.title, contact.secondaryTitle, "Laravel Developer", "React JS Developer",
         "PHP", "MySQL", "REST API", "ERP", "CRM", "SaaS", contact.name, "India",
     ],
     alternates: { canonical: "/" },
@@ -92,11 +93,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     >
                         Skip to content
                     </a>
-                    <Header />
+                    <Header data={clientData} />
                     {children}
                     <Footer />
                     <ScrollTop />
-                    <CommandPalette />
+                    <CommandPalette data={clientData} />
                 </ThemeProvider>
                 {/* Vercel Web Analytics + Speed Insights (enable both in the Vercel dashboard) */}
                 <Analytics />

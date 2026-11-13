@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { contact, projects } from "@/data/resume";
+import { contact, headline, projects } from "@/data/resume";
 import { geistFonts } from "@/lib/og-fonts";
 
 export const alt = "Project case study";
@@ -62,7 +62,7 @@ export default async function ProjectOgImage({ params }: { params: Promise<{ slu
                 </div>
 
                 <div style={{ display: "flex", fontSize: 26, color: "#AEB1BB" }}>
-                    {contact.name} — {contact.title} &amp; Technical Lead
+                    {contact.name} — {headline}
                 </div>
             </div>
         ),

@@ -6,15 +6,18 @@ Almost everything on the site comes from **[`data/resume.ts`](../data/resume.ts)
 
 | Field | Used for |
 |---|---|
-| `name`, `firstName`, `lastName` | Hero name, metadata, footer, JSON-LD, social images |
-| `title` | Role line, e.g. "Full Stack Developer" (the site adds "& Technical Lead") |
-| `email`, `phone` | Contact section, mobile menu, footer, command palette |
+| `name`, `firstName`, `lastName` | Hero name, header and menu wordmark (`firstName`), metadata, footer, JSON-LD, social images |
+| `title`, `secondaryTitle` | "Full Stack Developer" & "Technical Lead". Joined as `headline` for the page title, footer and social images. |
+| `email` | Contact section, mobile menu, footer, command palette |
+| `phone` | Contact section only |
 | `linkedin`, `linkedinHandle` | LinkedIn links; the handle is the visible text |
 | `github` *(optional)* | GitHub buttons and links appear wherever this is set |
 | `resumeUrl` *(optional)* | Shows "Download CV" in the Hero, mobile menu and command palette |
-| `location`, `locationShort` | The full form appears in a few places, the short form in compact UI |
+| `address` | `locality`, `region`, `country` (ISO code). Used for the JSON-LD address. |
+| `locationShort` | Location shown on the site, e.g. "Tiruvannamalai, IN" |
 | `timezone`, `timezoneLabel` | Live local-time clocks, e.g. `"Asia/Kolkata"` / `"IST"` |
-| `availability` | Green status badge text (Hero, Contact, mobile menu, social image) |
+| `availability` | Green status badge text (Hero, Contact, mobile menu) |
+| `relocation` | Relocation note (Hero › Now panel, About › Based in) |
 
 ### Adding your CV
 
@@ -26,22 +29,24 @@ The download buttons appear automatically and record a `download_cv` analytics e
 ## Dates: never hard-code years
 
 - **`careerStart`** (`"YYYY-MM"`) drives `yearsOfExperience`. That value appears in the summary, the Hero, the metrics, the page description and the social images.
-- **Each experience** has `startDate` and an optional `endDate` (`"YYYY-MM"`). The date range ("June 2022 – Present") and tenure ("4 yrs 5 mos") are computed from these.
-- The home page rebuilds daily, so these values stay current without a redeploy.
+- **Each experience** has `startDate` and an optional `endDate` (`"YYYY-MM"`). The date range ("June 2022 – Present") and tenure ("4 yrs 5 mos") are computed from these. An invalid date such as `"2022-13"` fails `npm run typecheck`.
+- **The current role** is the experience without an `endDate` (`currentRole`). It feeds Hero › Now, About › Currently and the JSON-LD.
+- Every page rebuilds daily, so these values stay current without a redeploy.
 
 ## Text and lists
 
 | Export | Where it shows | Notes |
 |---|---|---|
 | `summary` | About › Summary tile, JSON-LD | Uses `yearsOfExperience`; keep it as a template string |
-| `primaryStack` | Hero stack line, About summary, Skills › **Core stack** tiles, skill highlighting | The colour, icon and "used for" line of each Core tile come from the `CORE` map in `components/sections/Skills.tsx`. Add an entry there when you add a tool. |
+| `openTo` | About › Summary "Open to", Contact | `kind` is `full-time`, `contract` or `consulting` and picks the icon |
+| `primaryStack` | Hero stack line, About summary, Skills › **Core stack** tiles, skill highlighting | Each Core tile's colour, icon and "used for" line come from `CORE` in `components/sections/Skills.tsx`. Typecheck fails until you add an entry there. |
 | `marqueeStack` | Scrolling strip under the Hero | |
 | `integrations` | Skills › Shipped integrations, project pages | `name` is matched against each project's `techStack` |
-| `stats` | About › metric tiles (count up on scroll) | The order matters: icons and colours come from `STAT_STYLE` in `About.tsx`. Values ending in `%` also get a fill bar. |
-| `skillGroups` | Skills › category cards | The icon and colour for each category come from `CATEGORY` in `Skills.tsx`; unknown categories fall back to a default |
+| `stats` | About › metric tiles (count up on scroll) | Each `id` maps to an icon and colour in `STAT_STYLE` (`About.tsx`), and typecheck fails if one is missing. Values ending in `%` also get a fill bar. |
+| `skillGroups` | Skills › category cards, JSON-LD | Each `category` maps to an icon and colour in `CATEGORY` (`Skills.tsx`), and typecheck fails if one is missing |
 | `experiences` | Experience timeline, About › Currently, Hero › Now panel | `highlights` are the timeline items. Numbers in them (e.g. `40%`) are highlighted automatically. |
-| `additionalWork` | About › "Also contributed to" | Icons are picked by keyword (WordPress, Flutter, Joomla) |
-| `education` | About › Education tile | |
+| `additionalWork` | About › "Also contributed to" | `{ kind, text }`. `kind` is `web`, `mobile`, `cms` or `other` and picks the icon and colour. |
+| `education` | About › Education tile | `shortDegree` is the compact form shown on the tile. `grade` isn't displayed. |
 
 ## Projects (`projects`)
 
@@ -50,11 +55,11 @@ Each project gets a card on the home page and its own page at `/projects/<id>`.
 | Field | Notes |
 |---|---|
 | `id` | Also the URL slug, so keep it short and kebab-case |
-| `index` | Display order and number (`01`, `02`, …). The first project is the featured, full-width card. |
+| `index` | Displayed number (`01`, `02`, …). **Display order is the array order**, and the first project is the featured, full-width card. |
 | `title`, `description`, `highlights`, `techStack`, `status` | Required |
 | `color` | Hex colour for the cover, glows and badges |
 | `tagline` *(optional)* | Short line used on cards instead of `description` |
-| `role`, `year` *(optional)* | Shown on the card and the case-study fact strip |
+| `role`, `year` *(optional)* | Shown in the case-study fact strip |
 | `problem`, `outcome` *(optional)* | Adds "The problem" and "Outcome" sections to the case-study page |
 | `url` *(optional)* | Adds a "Visit live site" button |
 
@@ -63,7 +68,7 @@ Each project gets a card on the home page and its own page at `/projects/<id>`.
 ### Adding a project
 
 1. Add an entry to `projects` with a unique `id` and the next `index`.
-2. *(Optional)* Give it an illustration. Add a component to `COVERS` in [`components/projects/covers.tsx`](../components/projects/covers.tsx), keyed by the project `id`. Without one, the project uses a generic dashboard cover.
+2. *(Optional)* Give it an illustration. Create `<Name>Cover.tsx` in [`components/projects/covers/`](../components/projects/covers/) from the shared primitives, and register it in `COVERS` in `covers/index.tsx`, keyed by the project `id` (a mistyped id fails typecheck). Without one, the project uses a generic dashboard cover.
 3. That's it. The card, the case-study page, its social image, the sitemap entry and the command-palette item are all generated automatically.
 
 ## Copy that lives in components

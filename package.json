@@ -6,11 +6,15 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "lint": "eslint .",
-        "typecheck": "tsc --noEmit"
+        "lint": "eslint . --max-warnings=0",
+        "typecheck": "tsc --noEmit",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "format": "prettier --write .",
+        "format:check": "prettier --check ."
     },
     "engines": {
-        "node": ">=20.9.0"
+        "node": ">=22"
     },
     "dependencies": {
         "@vercel/analytics": "^2.0.1",
@@ -30,8 +34,12 @@
         "@types/react-dom": "^19.3.0",
         "eslint": "^9.39.5",
         "eslint-config-next": "^16.4.6",
+        "eslint-plugin-jsx-a11y": "^6.10.2",
         "postcss": "^8.5.32",
+        "prettier": "^3.10.1",
         "tailwindcss": "^4.3.5",
-        "typescript": "^5.9.3"
+        "typescript": "^5.9.3",
+        "typescript-eslint": "^8.72.2",
+        "vitest": "^5.1.0"
     }
 }

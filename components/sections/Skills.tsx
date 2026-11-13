@@ -1,16 +1,17 @@
-import type { CSSProperties } from "react";
-import { CodeXml, Database, MonitorSmartphone, Plug, Server, Smartphone, Users, Workflow, Wrench, type LucideIcon } from "lucide-react";
+import { Database, MonitorSmartphone, Plug, Server, Smartphone, Users, Workflow, Wrench, type LucideIcon } from "lucide-react";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Accent } from "@/components/ui/Accent";
 import { SpotlightGroup } from "@/components/ui/Spotlight";
-import { integrations, primaryStack, skillGroups } from "@/data/resume";
+import { ToneIcon } from "@/components/ui/ToneIcon";
+import { Tag } from "@/components/ui/Tag";
+import { integrations, primaryStack, skillGroups, type CoreTech, type SkillCategory } from "@/data/resume";
+import { tone, type ToneName, type TonePair } from "@/lib/tone";
 import { cn } from "@/lib/utils";
 
-const tone = (a: string, b = a) => ({ "--tone": `var(--v-${a})`, "--tone-2": `var(--v-${b})` } as CSSProperties);
-
-/* Icon + colour pair for each category */
-const CATEGORY: Record<string, { icon: LucideIcon; tone: [string, string] }> = {
+/* Icon + colour pair for each category — keyed by the categories in data/resume.ts,
+   so adding a category without a style fails typecheck */
+const CATEGORY: Record<SkillCategory, { icon: LucideIcon; tone: TonePair }> = {
     "Backend": { icon: Server, tone: ["indigo", "violet"] },
     "Frontend": { icon: MonitorSmartphone, tone: ["cyan", "blue"] },
     "Database": { icon: Database, tone: ["amber", "orange"] },
@@ -19,10 +20,11 @@ const CATEGORY: Record<string, { icon: LucideIcon; tone: [string, string] }> = {
     "DevOps & Tools": { icon: Wrench, tone: ["emerald", "cyan"] },
     "Leadership": { icon: Users, tone: ["orange", "pink"] },
 };
-const fallback = { icon: CodeXml, tone: ["indigo", "violet"] as [string, string] };
+/* Integration chips cycle through these */
+const INTEGRATION_TONES: ToneName[] = ["indigo", "emerald", "cyan", "amber", "pink", "violet"];
 
-/* Core stack tiles: colour + short label of what each is used for */
-const CORE: Record<string, { tone: [string, string]; role: string; icon: LucideIcon }> = {
+/* Core stack tiles: colour + short label of what each is used for (one per primaryStack entry) */
+const CORE: Record<CoreTech, { tone: TonePair; role: string; icon: LucideIcon }> = {
     "Laravel": { tone: ["pink", "orange"], role: "Backend & APIs", icon: Server },
     "React JS": { tone: ["cyan", "blue"], role: "Dashboards & UI", icon: MonitorSmartphone },
     "MySQL": { tone: ["amber", "orange"], role: "Schema & data", icon: Database },
@@ -50,7 +52,7 @@ export function Skills() {
                 <h3 className="t-label mb-4 text-fg-3">Core stack</h3>
                 <SpotlightGroup className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
                     {primaryStack.map((name, i) => {
-                        const c = CORE[name] ?? { tone: fallback.tone, role: "", icon: fallback.icon };
+                        const c = CORE[name];
                         const Icon = c.icon;
                         return (
                             <Reveal
@@ -68,7 +70,7 @@ export function Skills() {
                                     <Icon size={20} strokeWidth={1.75} />
                                 </span>
                                 <p className="relative mt-5 text-lg font-semibold tracking-tight text-fg">{name}</p>
-                                {c.role && <p className="relative mt-0.5 text-xs text-fg-2">{c.role}</p>}
+                                <p className="relative mt-0.5 text-xs text-fg-2">{c.role}</p>
                             </Reveal>
                         );
                     })}
@@ -78,7 +80,7 @@ export function Skills() {
                 <h3 className="t-label mb-4 mt-12 text-fg-3">Everything else</h3>
                 <SpotlightGroup className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {skillGroups.map((g, i) => {
-                        const c = CATEGORY[g.category] ?? fallback;
+                        const c = CATEGORY[g.category];
                         const Icon = c.icon;
                         return (
                             <Reveal
@@ -91,15 +93,17 @@ export function Skills() {
                                 )}
                             >
                                 {/* colour edge */}
-                                <span aria-hidden className="absolute inset-x-0 top-0 h-[3px] bg-[linear-gradient(90deg,var(--tone),var(--tone-2))] opacity-80" />
+                                <span aria-hidden className="absolute inset-x-0 top-0 h-[3px] bg-tone-grad-x opacity-80" />
 
                                 <div className="mb-5 flex items-center gap-3">
-                                    <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-(--tone)/12 text-(--tone) ring-1 ring-(--tone)/25 transition-colors duration-300 group-hover/card:bg-tone-solid group-hover/card:text-white group-hover/card:ring-transparent">
-                                        <Icon size={18} strokeWidth={1.75} />
-                                    </span>
+                                    <ToneIcon
+                                        icon={Icon}
+                                        size="xl"
+                                        className="transition-colors duration-300 group-hover/card:bg-tone-solid group-hover/card:text-white group-hover/card:ring-transparent"
+                                    />
                                     <div className="min-w-0 flex-1">
                                         <h4 className="font-semibold tracking-tight text-fg leading-tight">{g.category}</h4>
-                                        <p className="font-mono text-[11px] text-fg-3">{g.skills.length} skills</p>
+                                        <p className="font-mono text-2xs text-fg-3">{g.skills.length} skills</p>
                                     </div>
                                 </div>
 
@@ -107,19 +111,19 @@ export function Skills() {
                                     {g.skills.map(skill => {
                                         const primary = isPrimary(skill);
                                         return (
-                                            <li
+                                            <Tag
                                                 key={skill}
                                                 className={cn(
-                                                    "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors duration-150",
+                                                    "transition-colors duration-150",
                                                     primary
                                                         ? "border-(--tone)/40 bg-(--tone)/10 text-fg"
-                                                        : "border-border bg-bg-2 text-fg-2 hover:border-(--tone)/40 hover:text-fg"
+                                                        : "hover:border-(--tone)/40 hover:text-fg"
                                                 )}
                                             >
                                                 {primary && <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-(--tone)" />}
                                                 {skill}
                                                 {primary && <span className="sr-only"> (core stack)</span>}
-                                            </li>
+                                            </Tag>
                                         );
                                     })}
                                 </ul>
@@ -134,26 +138,26 @@ export function Skills() {
                     >
                         <span aria-hidden className="pointer-events-none absolute -right-16 -bottom-16 h-48 w-48 rounded-full bg-v-violet/20 blur-3xl" />
                         <div className="relative mb-5 flex items-center gap-3">
-                            <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[image:var(--grad-solid)] text-white">
+                            <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-grad-solid text-white">
                                 <Plug size={18} strokeWidth={1.75} />
                             </span>
                             <div>
                                 <h4 className="font-semibold tracking-tight text-fg leading-tight">Shipped integrations</h4>
-                                <p className="font-mono text-[11px] text-fg-3">{integrations.length} production APIs</p>
+                                <p className="font-mono text-2xs text-fg-3">{integrations.length} production APIs</p>
                             </div>
                         </div>
                         <ul className="relative grid grid-cols-2 gap-2">
                             {integrations.map(({ name, note }, j) => (
                                 <li
                                     key={name}
-                                    style={tone(["indigo", "emerald", "cyan", "amber", "pink", "violet"][j % 6]!)}
+                                    style={tone(INTEGRATION_TONES[j % INTEGRATION_TONES.length] ?? "indigo")}
                                     className="flex items-center gap-2.5 rounded-lg border border-border bg-bg-2/70 p-2.5 min-w-0 transition-colors duration-200 hover:border-(--tone)/40"
                                 >
                                     <span aria-hidden className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-(--tone)/15 font-mono text-xs font-semibold text-(--tone) ring-1 ring-(--tone)/25">
                                         {name[0]}
                                     </span>
                                     <span className="min-w-0">
-                                        <span className="block truncate text-[13px] font-semibold text-fg">{name}</span>
+                                        <span className="block truncate text-13 font-semibold text-fg">{name}</span>
                                         <span className="block truncate font-mono text-[10px] text-fg-3">{note}</span>
                                     </span>
                                 </li>

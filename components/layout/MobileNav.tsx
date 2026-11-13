@@ -1,28 +1,33 @@
 "use client";
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useCallback, useRef, type CSSProperties } from "react";
 import Link from "next/link";
 import { ArrowRight, Download, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_LINKS } from "@/config/nav";
-import { contact, projects } from "@/data/resume";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
-import { CopyEmail } from "@/components/ui/CopyEmail";
+import type { ClientData } from "@/data/client";
+import { ThemeToggle } from "@/components/features/theme/ThemeToggle";
+import { CopyEmail } from "@/components/features/contact/CopyEmail";
 import { CvLink } from "@/components/ui/CvLink";
 import { LocalTime } from "@/components/ui/LocalTime";
-import { GitHubIcon, LinkedInIcon } from "@/components/ui/BrandIcons";
-import { openCommandPalette } from "@/components/ui/CommandPalette";
+import { SOCIAL_ICON } from "@/components/ui/BrandIcons";
+import { buttonVariants } from "@/components/ui/Button";
+import { iconButtonVariants } from "@/components/ui/IconButton";
+import { ExternalLink } from "@/components/ui/ExternalLink";
+import { socialLinks } from "@/lib/social";
+import { openCommandPalette } from "@/components/features/command-palette/events";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { releaseScrollLock, useScrollLock } from "@/hooks/useScrollLock";
 
 interface Props {
+    data: ClientData;
     open: boolean;
     /** restoreFocus=false when a link was followed */
     onClose: (restoreFocus?: boolean) => void;
     active: string;
 }
 
-const FOCUSABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-/** Stagger index for the `.menu-item` entrance (globals.css) */
-const stagger = (i: number) => ({ "--i": i } as CSSProperties);
+/** Stagger index for the `.menu-item` entrance (styles/components.css) */
+const stagger = (i: number): CSSProperties => ({ "--i": i });
 
 /**
  * Full-screen mobile menu. Opens with a circular reveal from the menu button,
@@ -30,52 +35,17 @@ const stagger = (i: number) => ({ "--i": i } as CSSProperties);
  * focus moves in and is trapped, Escape closes, page scroll is locked,
  * and the panel is inert + hidden while closed.
  */
-export function MobileNav({ open, onClose, active }: Props) {
+export function MobileNav({ data, open, onClose, active }: Props) {
     const panelRef = useRef<HTMLDivElement>(null);
     const closeRef = useRef<HTMLButtonElement>(null);
 
-    /* Lock page scroll (on <html>, the actual scroller) + move focus into the menu */
-    useEffect(() => {
-        if (!open) return;
-        const root = document.documentElement;
-        root.style.overflow = "hidden";
-        const t = setTimeout(() => closeRef.current?.focus(), 150);
-        return () => {
-            clearTimeout(t);
-            root.style.overflow = "";
-        };
-    }, [open]);
-
-    /* Escape closes, Tab is trapped inside the menu */
-    useEffect(() => {
-        if (!open) return;
-        const onKey = (e: KeyboardEvent) => {
-            if (e.key === "Escape") {
-                e.preventDefault();
-                onClose();
-                return;
-            }
-            if (e.key !== "Tab" || !panelRef.current) return;
-            const items = Array.from(panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE));
-            const first = items[0];
-            const last = items.at(-1);
-            if (!first || !last) return;
-            const current = document.activeElement;
-            if (e.shiftKey && (current === first || !panelRef.current.contains(current))) {
-                e.preventDefault();
-                last.focus();
-            } else if (!e.shiftKey && current === last) {
-                e.preventDefault();
-                first.focus();
-            }
-        };
-        document.addEventListener("keydown", onKey);
-        return () => document.removeEventListener("keydown", onKey);
-    }, [open, onClose]);
+    const escape = useCallback(() => onClose(), [onClose]);
+    useScrollLock(open);
+    useFocusTrap(panelRef, open, { onEscape: escape, initialFocus: closeRef, focusDelay: 150 });
 
     /* Following a link: unlock scrolling first so the anchor jump can happen */
     const follow = () => {
-        document.documentElement.style.overflow = "";
+        releaseScrollLock();
         onClose(false);
     };
 
@@ -106,8 +76,8 @@ export function MobileNav({ open, onClose, active }: Props) {
             {/* Top bar — mirrors the header so the button appears to morph in place */}
             <div className="wrap relative pt-3">
                 <div className="flex items-center justify-between rounded-full border border-border bg-bg-card/60 py-2 pl-5 pr-2 backdrop-blur">
-                    <Link href="/" onClick={follow} className="font-semibold text-[15px] tracking-tight text-fg">
-                        Mogesh<span className="text-accent">.</span>
+                    <Link href="/" onClick={follow} className="font-semibold text-15 tracking-tight text-fg">
+                        {data.contact.firstName}<span className="text-accent">.</span>
                     </Link>
                     <div className="flex items-center gap-2">
                         <ThemeToggle />
@@ -171,14 +141,14 @@ export function MobileNav({ open, onClose, active }: Props) {
                 <div className="menu-item mt-8" style={stagger(afterLinks)}>
                     <p className="t-label text-fg-3 mb-3">Case studies</p>
                     <ul className="grid grid-cols-2 gap-2">
-                        {projects.map(p => (
+                        {data.projects.map(p => (
                             <li key={p.id}>
                                 <Link
                                     href={`/projects/${p.id}`}
                                     onClick={follow}
-                                    className="flex h-full items-start gap-2 rounded-xl border border-border bg-bg-card/70 p-3 text-[13px] font-medium leading-snug text-fg-2 backdrop-blur transition-colors active:border-accent active:text-accent"
+                                    className="flex h-full items-start gap-2 rounded-xl border border-border bg-bg-card/70 p-3 text-13 font-medium leading-snug text-fg-2 backdrop-blur transition-colors active:border-accent active:text-accent"
                                 >
-                                    <span className="font-mono text-[11px] text-fg-3 pt-px">{String(p.index).padStart(2, "0")}</span>
+                                    <span className="font-mono text-2xs text-fg-3 pt-px">{String(p.index).padStart(2, "0")}</span>
                                     <span className="line-clamp-2">{p.title}</span>
                                 </Link>
                             </li>
@@ -188,16 +158,16 @@ export function MobileNav({ open, onClose, active }: Props) {
 
                 {/* Actions + contact */}
                 <div className="menu-item mt-auto pt-8" style={stagger(afterLinks + 1)}>
-                    <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1.5">
-                        <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                        <span className="t-label text-emerald-700 dark:text-emerald-400">{contact.availability}</span>
+                    <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-v-emerald/25 bg-v-emerald/10 px-3 py-1.5">
+                        <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-v-emerald" />
+                        <span className="t-label text-success">{data.contact.availability}</span>
                     </p>
 
                     <div className="grid grid-cols-[1fr_auto] gap-2">
                         <Link
                             href="/#contact"
                             onClick={follow}
-                            className="flex items-center justify-center gap-2 rounded-full bg-[image:var(--grad-solid)] px-5 py-3.5 text-[15px] font-semibold text-white shadow-[0_10px_30px_-10px_var(--v-violet)] transition-[filter] hover:brightness-110 active:scale-[0.98]"
+                            className={buttonVariants({ size: "lg", className: "py-3.5 text-15" })}
                         >
                             Hire me <ArrowRight size={16} strokeWidth={2.2} aria-hidden />
                         </Link>
@@ -211,11 +181,11 @@ export function MobileNav({ open, onClose, active }: Props) {
                         </button>
                     </div>
 
-                    {contact.resumeUrl && (
+                    {data.contact.resumeUrl && (
                         <CvLink
-                            href={contact.resumeUrl}
+                            href={data.contact.resumeUrl}
                             source="mobile_menu"
-                            className="mt-2 flex items-center justify-center gap-2 rounded-full border border-border px-5 py-3 text-sm font-semibold text-fg-2 transition-colors active:border-accent active:text-accent"
+                            className={buttonVariants({ variant: "secondary", size: "lg", className: "mt-2 flex text-fg-2" })}
                         >
                             <Download size={15} aria-hidden /> Download CV
                         </CvLink>
@@ -223,35 +193,23 @@ export function MobileNav({ open, onClose, active }: Props) {
 
                     <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-5">
                         <div className="min-w-0">
-                            <a href={`mailto:${contact.email}`} className="block truncate text-sm font-medium text-fg">
-                                {contact.email}
+                            <a href={`mailto:${data.contact.email}`} className="block truncate text-sm font-medium text-fg">
+                                {data.contact.email}
                             </a>
                             <p className="mt-0.5 font-mono text-xs text-fg-3">
-                                {contact.locationShort} · <LocalTime timeZone={contact.timezone} label={contact.timezoneLabel} />
+                                {data.contact.locationShort} · <LocalTime timeZone={data.contact.timezone} label={data.contact.timezoneLabel} />
                             </p>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
-                            <CopyEmail email={contact.email} source="mobile_menu" compact />
-                            <a
-                                href={contact.linkedin}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label="LinkedIn (opens in a new tab)"
-                                className="grid h-11 w-11 place-items-center rounded-full border border-border bg-bg-card text-fg-2 transition-colors active:text-accent"
-                            >
-                                <LinkedInIcon size={16} />
-                            </a>
-                            {contact.github && (
-                                <a
-                                    href={contact.github}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    aria-label="GitHub (opens in a new tab)"
-                                    className="grid h-11 w-11 place-items-center rounded-full border border-border bg-bg-card text-fg-2 transition-colors active:text-accent"
-                                >
-                                    <GitHubIcon size={16} />
-                                </a>
-                            )}
+                            <CopyEmail email={data.contact.email} source="mobile_menu" compact />
+                            {socialLinks(data.contact).map(({ id, label, href }) => {
+                                const Icon = SOCIAL_ICON[id];
+                                return (
+                                    <ExternalLink key={id} href={href} aria-label={label} className={iconButtonVariants({ className: "active:text-accent" })}>
+                                        <Icon size={16} />
+                                    </ExternalLink>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>

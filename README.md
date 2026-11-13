@@ -21,7 +21,7 @@ Personal portfolio of a Full Stack Developer & Technical Lead: a statically gene
   - Open Graph and Twitter cards with generated images.
   - JSON-LD (Person).
   - Sitemap, robots and web manifest.
-  - Security headers.
+  - Security headers (CSP, HSTS, COOP and more).
 - **Extras:** an optional contact form (Resend), Vercel Analytics and Speed Insights, a print stylesheet that prints the home page as a resume, and CI on GitHub Actions.
 
 ## Tech stack
@@ -30,16 +30,16 @@ Personal portfolio of a Full Stack Developer & Technical Lead: a statically gene
 |---|---|
 | Framework | Next.js 16 (App Router, Turbopack), React 19 |
 | Language | TypeScript 5 (strict, `noUncheckedIndexedAccess`); unused code is a lint error |
-| Styling | Tailwind CSS 4 (CSS-first `@theme` in `app/globals.css`), OKLCH design tokens |
+| Styling | Tailwind CSS 4 (CSS-first `@theme` in `styles/tokens.css`), OKLCH design tokens |
 | Fonts | Geist Sans, Geist Mono and Instrument Serif via `next/font` (self-hosted) |
 | Theme | `next-themes`: **light by default** (OS preference is ignored), toggle to dark |
 | Icons | `lucide-react` plus inline GitHub / LinkedIn marks |
 | Analytics | `@vercel/analytics`, `@vercel/speed-insights` |
-| Quality | ESLint 9 (flat config), GitHub Actions CI |
+| Quality | ESLint 9 (flat config, strict jsx-a11y, type-aware rules, zero warnings), Vitest, Prettier, GitHub Actions CI, Dependabot |
 
 ## Quick start
 
-Requires **Node.js 20.9 or newer**.
+Requires **Node.js 22 or newer** (`.nvmrc` pins 24; run `nvm use`).
 
 ```bash
 git clone https://github.com/Mogesh-18/portfolio-app.git
@@ -55,8 +55,10 @@ npm run dev          # → http://localhost:3000
 | `npm start` | Serve the production build |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | TypeScript check (`tsc --noEmit`) |
+| `npm test` | Unit tests (Vitest); `npm run test:watch` while developing |
+| `npm run format` | Format with Prettier (`format:check` to verify only) |
 
-No environment variables are needed to run locally. The optional ones are listed in [docs/deployment.md](docs/deployment.md#environment-variables).
+No environment variables are needed to run locally. The optional ones are in [`.env.example`](.env.example). Copy it to `.env.local` to use them, and see [docs/deployment.md](docs/deployment.md#environment-variables).
 
 ## Documentation
 
@@ -74,25 +76,31 @@ app/
   layout.tsx              Root layout: fonts, metadata, theme, Header/Footer, palette, analytics
   page.tsx                Home page + JSON-LD (Person)
   projects/[slug]/        Case-study pages + per-project social images
-  actions/contact.ts      Contact form Server Action (Resend REST API)
-  globals.css             Design tokens, Tailwind theme, animations, print styles
+  globals.css             Imports Tailwind and the styles/ parts
   opengraph-image.tsx     Generated 1200×630 social image
   icon.tsx, apple-icon.tsx, manifest.ts, sitemap.ts, robots.ts, not-found.tsx
 components/
-  layout/                 Header, MobileNav, Footer
+  ui/                     Primitives: Button, IconButton, ExternalLink, Tag, ToneIcon, LiveDot, Reveal,
+                          SectionHeader, Accent, BrandIcons, CountUp, LocalTime, Magnetic, Spotlight,
+                          CvLink, ScrollTop
+  layout/                 Header, MobileNav, Footer, useActiveSection
   sections/               Hero, About, Experience, Projects, Skills, Contact
-  projects/               ProjectCover, covers.tsx (per-project illustrations), StatusBadge
-  ui/                     Reveal, SectionHeader, Accent, CommandPalette, ScrollTop, ThemeToggle,
-                          CountUp, LocalTime, Magnetic, Spotlight, CopyEmail, CvLink,
-                          ContactForm, BrandIcons
-config/nav.ts             Navigation links
-data/resume.ts            All content — single source of truth
+  projects/               ProjectCard (featured + regular), ProjectCover, StatusBadge,
+                          covers/ (one illustration per project + shared primitives)
+  features/
+    command-palette/      CommandPalette, items (entries), search (matching), events (open from anywhere)
+    contact/              ContactForm, CopyEmail, actions.ts (Server Action, Resend REST API)
+    theme/                ThemeProvider, ThemeToggle, theme-switch (View Transitions reveal)
+config/                   nav (links), icons (shared icon maps), site (title, description, URL)
+data/                     resume.ts — all content, single source of truth
+                          client.ts — the small slice passed to client components as props
+hooks/                    useMounted, useFocusTrap, useScrollLock
+lib/                      dates, tone, social, og-fonts, utils (pure helpers, no content imports)
+styles/                   tokens, base, components, utilities, motion, print
+types/                    index.ts (shared interfaces), css.d.ts (CSS custom properties in style props)
 docs/                     Guides (see above)
-hooks/useActiveSection.ts Which section is in view (nav highlight)
-lib/                      site.ts, dates.ts, theme-switch.ts, og-fonts.ts, utils.ts
-providers/ThemeProvider.tsx
-types/index.ts            Shared interfaces
-.github/workflows/ci.yml  Lint, typecheck and build on push / PR
+tests/                    Vitest: dates, palette search, helpers, contact action, data integrity
+.github/                  CI (lint, typecheck, test, build) and Dependabot
 ```
 
 ## Deployment

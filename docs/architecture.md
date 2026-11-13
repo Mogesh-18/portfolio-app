@@ -23,10 +23,12 @@ Islands write to the DOM directly (data attributes and CSS variables) wherever p
 ```
 data/resume.ts ──▶ components/sections/*  (home page)
               ├──▶ app/projects/[slug]   (case studies)
-              ├──▶ lib/site.ts           (title, description, canonical URL)
+              ├──▶ config/site.ts        (title, description, canonical URL)
               ├──▶ metadata, JSON-LD, OG images, sitemap, manifest
-              └──▶ CommandPalette        (sections, projects, links)
+              └──▶ data/client.ts ──(props from the layout)──▶ Header, MobileNav, CommandPalette
 ```
+
+**Client components never import `data/resume.ts`.** The layout passes them a small slice (`data/client.ts`) as props, so the content file stays out of the browser bundle. An ESLint rule enforces this.
 
 ## SEO
 
@@ -39,11 +41,11 @@ data/resume.ts ──▶ components/sections/*  (home page)
 `next-themes` with the `class` strategy:
 - Light by default, and the OS preference is ignored.
 - An inline script sets the theme class before first paint, so there's no flash.
-- `lib/theme-switch.ts` applies the class synchronously inside `document.startViewTransition` to produce the circular reveal.
+- `components/features/theme/theme-switch.ts` applies the class synchronously inside `document.startViewTransition` to produce the circular reveal.
 
 ## Contact form
 
-`app/actions/contact.ts` is a Server Action. It:
+`components/features/contact/actions.ts` is a Server Action. It:
 1. Runs the spam guards: a honeypot field (`cf_trap`) and a minimum time on the form.
 2. Validates input, and strips line breaks from the name because it goes into the subject.
 3. Applies a best-effort rate limit of 5 messages per IP per 10 minutes. It is in-memory, so it applies per server instance.
@@ -65,9 +67,20 @@ All events are sent with `track()` from `@vercel/analytics`.
 ## Security
 
 `next.config.mjs` sets these headers on every route:
-- `X-Content-Type-Options`
-- `X-Frame-Options: DENY`
-- `Referrer-Policy`
-- `Permissions-Policy`
+- **`Content-Security-Policy`** (production builds only). Everything is limited to this origin, plus the Vercel toolbar on previews. Scripts need `'unsafe-inline'`, because nonces would force dynamic rendering and the pages are static.
+- `Strict-Transport-Security` (2 years, including subdomains)
+- `Cross-Origin-Opener-Policy: same-origin`
+- `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`
 
 It also turns off the `X-Powered-By` header.
+
+## Testing and quality
+
+| Check | Command | What it covers |
+|---|---|---|
+| Unit tests | `npm test` | Date helpers, palette search, social links, URL normalisation, `cn()` merging, the contact Server Action (validation, honeypot, timing, rate limit, Resend errors), content integrity (unique ids, valid dates and colours, exactly one current role, what `data/client.ts` exposes) |
+| Lint | `npm run lint` | Next.js rules, strict jsx-a11y, `consistent-type-imports`, exhaustive `switch` over unions, a guard that keeps `data/resume.ts` out of client code. Zero warnings allowed. |
+| Types | `npm run typecheck` | Strict TypeScript, plus content typing (e.g. a skill category without a style fails) |
+| Format | `npm run format:check` | Prettier (4-space indent, 140 columns), matching `.editorconfig` |
+
+CI runs lint, typecheck, tests and build on every push to `main` and on every pull request.

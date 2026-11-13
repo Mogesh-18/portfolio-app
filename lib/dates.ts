@@ -5,8 +5,10 @@ const MONTHS = [
 
 function parseYm(ym: string) {
     const match = /^(\d{4})-(\d{2})$/.exec(ym);
-    if (!match) throw new Error(`Expected a "YYYY-MM" date, got "${ym}"`);
-    return { y: Number(match[1]), m: Number(match[2]) };
+    const y = Number(match?.[1]);
+    const m = Number(match?.[2]);
+    if (!match || m < 1 || m > 12) throw new Error(`Expected a "YYYY-MM" date, got "${ym}"`);
+    return { y, m };
 }
 
 function nowYm() {

@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { ArrowUp } from "lucide-react";
-import { contact } from "@/data/resume";
+import { contact, headline } from "@/data/resume";
 import { NAV_LINKS } from "@/config/nav";
 import { LocalTime } from "@/components/ui/LocalTime";
+import { ExternalLink } from "@/components/ui/ExternalLink";
+import { socialLinks } from "@/lib/social";
 
 export function Footer() {
     const elsewhere = [
         { label: "Email", href: `mailto:${contact.email}`, ext: false },
-        { label: "LinkedIn", href: contact.linkedin, ext: true },
-        ...(contact.github ? [{ label: "GitHub", href: contact.github, ext: true }] : []),
+        ...socialLinks(contact).map(({ label, href }) => ({ label, href, ext: true })),
     ];
 
     return (
@@ -19,7 +20,7 @@ export function Footer() {
                         <p className="font-semibold tracking-tight text-fg text-lg">
                             {contact.name}<span className="text-accent">.</span>
                         </p>
-                        <p className="mt-1 text-sm text-fg-2">{contact.title} &amp; Technical Lead</p>
+                        <p className="mt-1 text-sm text-fg-2">{headline}</p>
                         <p className="mt-4 font-mono text-xs text-fg-3">
                             {contact.locationShort} · <LocalTime timeZone={contact.timezone} label={contact.timezoneLabel} />
                         </p>
@@ -39,18 +40,17 @@ export function Footer() {
                     <div>
                         <h2 className="t-label text-fg-3 mb-3">Elsewhere</h2>
                         <ul className="space-y-2">
-                            {elsewhere.map(({ label, href, ext }) => (
-                                <li key={label}>
-                                    <a
-                                        href={href}
-                                        {...(ext ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                                        className="text-sm text-fg-2 hover:text-accent transition-colors duration-200"
-                                    >
-                                        {label}
-                                        {ext && <><span aria-hidden> ↗</span><span className="sr-only"> (opens in a new tab)</span></>}
-                                    </a>
-                                </li>
-                            ))}
+                            {elsewhere.map(({ label, href, ext }) => {
+                                const A = ext ? ExternalLink : "a";
+                                return (
+                                    <li key={label}>
+                                        <A href={href} className="text-sm text-fg-2 hover:text-accent transition-colors duration-200">
+                                            {label}
+                                            {ext && <span aria-hidden> ↗</span>}
+                                        </A>
+                                    </li>
+                                );
+                            })}
                         </ul>
                     </div>
                 </div>
